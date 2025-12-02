@@ -1,0 +1,24 @@
+{
+    "welcome": "Welcome to Loyalty CRM",
+    "login": "Login",
+    "points": "Points",
+    "redeem": "Redeem",
+    "calculator": {
+        "title": "WhatsApp Cost Calculator",
+        "country": "Country",
+        "category": "Category",
+        "projections": "Projections"
+    },
+    "import": {
+        "title": "Bulk Import",
+        "upload": "Upload CSV",
+        "map": "Map Columns",
+        "validate": "Validation",
+        "success": "Import Successful"
+    },
+    "analytics": {
+        "active_members": "Active Members",
+        "revenue": "Revenue",
+        "repeat_rate": "Repeat Rate"
+    }
+}

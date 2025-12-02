@@ -1,0 +1,24 @@
+{
+    "welcome": "Selamat Datang ke CRM Kesetiaan",
+    "login": "Log Masuk",
+    "points": "Mata Ganjaran",
+    "redeem": "Tebus",
+    "calculator": {
+        "title": "Kalkulator Kos WhatsApp",
+        "country": "Negara",
+        "category": "Kategori",
+        "projections": "Unjuran"
+    },
+    "import": {
+        "title": "Import Pukal",
+        "upload": "Muat Naik CSV",
+        "map": "Peta Lajur",
+        "validate": "Pengesahan",
+        "success": "Import Berjaya"
+    },
+    "analytics": {
+        "active_members": "Ahli Aktif",
+        "revenue": "Hasil",
+        "repeat_rate": "Kadar Ulangan"
+    }
+}

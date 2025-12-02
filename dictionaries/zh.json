@@ -1,0 +1,24 @@
+{
+    "welcome": "欢迎使用忠诚度 CRM",
+    "login": "登录",
+    "points": "积分",
+    "redeem": "兑换",
+    "calculator": {
+        "title": "WhatsApp 成本计算器",
+        "country": "国家",
+        "category": "类别",
+        "projections": "预测"
+    },
+    "import": {
+        "title": "批量导入",
+        "upload": "上传 CSV",
+        "map": "映射列",
+        "validate": "验证",
+        "success": "导入成功"
+    },
+    "analytics": {
+        "active_members": "活跃会员",
+        "revenue": "收入",
+        "repeat_rate": "复购率"
+    }
+}
