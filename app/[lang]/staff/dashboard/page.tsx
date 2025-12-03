@@ -39,9 +39,9 @@ export default async function DashboardPage() {
                     <a href="/en/staff/redeem" className="flex items-center justify-center p-8 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition">
                         <span className="text-xl font-bold">Scan / Redeem</span>
                     </a>
-                    <button className="flex items-center justify-center p-8 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition">
+                    <a href="/en/staff/issue" className="flex items-center justify-center p-8 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition">
                         <span className="text-xl font-bold">Issue Points</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
