@@ -24,6 +24,25 @@ export async function handleWhatsAppMessage(from: string, body: string) {
         }
 
         return `Hi ${profile.full_name || 'there'}! Your current balance is: ${profile.points_balance} points.`
+    } else if (message === 'get' || message === 'otp') {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString()
+        // 5 minutes expiry
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                otp_code: otp,
+                otp_expires_at: expiresAt
+            })
+            .eq('phone', from)
+
+        if (error) {
+            console.error('Failed to set OTP:', error)
+            return "Sorry, something went wrong generating your code. Please try again."
+        }
+
+        return `Your One-Time Code is: *${otp}*\n\nShow this to the staff to verify your identity. Valid for 5 minutes.`
     } else if (message.startsWith('redeem')) {
         return "To redeem points, please visit our store and tell the staff your phone number."
     }
