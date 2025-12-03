@@ -25,7 +25,7 @@ export async function handleWhatsAppMessage(from: string, body: string) {
 
         return `Hi ${profile.full_name || 'there'}! Your current balance is: ${profile.points_balance} points.`
     } else if (message.startsWith('redeem')) {
-        return "To redeem points, please visit our store and show your Member QR Code to the staff."
+        return "To redeem points, please visit our store and tell the staff your phone number."
     }
 
     return "Type 'Balance' to check your points."
