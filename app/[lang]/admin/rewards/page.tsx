@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { createReward, toggleReward } from '@/app/admin/actions'
+import { createReward } from '@/app/admin/actions'
+import RewardItem from './components/RewardItem'
 
 export default async function RewardsPage() {
     const supabase = await createClient()
@@ -42,26 +43,7 @@ export default async function RewardsPage() {
                 {/* List */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {rewards?.map((reward: any) => (
-                        <div key={reward.id} className={`p-6 rounded-xl shadow border ${reward.is_active ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800 opacity-75'}`}>
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">{reward.name}</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">{reward.description}</p>
-                                </div>
-                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">{reward.cost} pts</span>
-                            </div>
-
-                            <div className="mt-4 flex justify-end">
-                                <form action={async () => {
-                                    'use server'
-                                    await toggleReward(reward.id, !reward.is_active)
-                                }}>
-                                    <button className={`text-sm font-medium ${reward.is_active ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'}`}>
-                                        {reward.is_active ? 'Deactivate' : 'Activate'}
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                        <RewardItem key={reward.id} reward={reward} />
                     ))}
                 </div>
             </div>
