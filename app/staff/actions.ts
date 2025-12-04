@@ -74,6 +74,8 @@ export async function redeemReward(profileId: string, rewardId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    if (!user) return { error: "User not logged in" }
+
     // Get tenant_id from staff profile
     const { data: staffProfile } = await supabase
         .from('profiles')
@@ -113,20 +115,26 @@ export async function redeemReward(profileId: string, rewardId: string) {
     if (ledgerError) return { error: ledgerError.message }
 
     // 3. Record Redemption
-    const { error: redemptionError } = await supabase
+    const { data: redemption, error: redemptionError } = await supabase
         .from('redemptions')
         .insert({
             tenant_id: staffProfile.tenant_id,
             profile_id: profileId,
             reward_id: rewardId,
             status: 'completed',
-            redeemed_at: new Date().toISOString()
+            redeemed_at: new Date().toISOString(),
+            performed_by: user.id
         })
+        .select('redemption_number')
+        .single()
 
-    if (redemptionError) console.error("Redemption record failed", redemptionError)
+    if (redemptionError) {
+        console.error("Redemption record failed", redemptionError)
+        return { error: "Failed to record redemption" }
+    }
 
     revalidatePath('/staff/dashboard')
-    return { success: true, message: `Redeemed ${reward.name}` }
+    return { success: true, message: `Redeemed ${reward.name} (Ref #${redemption?.redemption_number})` }
 }
 
 export async function getRewards() {
