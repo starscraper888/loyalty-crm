@@ -30,14 +30,29 @@ export async function issuePoints(profileId: string, points: number, description
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    if (!user) {
+        return { error: "User not logged in" }
+    }
+
     // Get tenant_id from staff profile
-    const { data: staffProfile } = await supabase
+    const { data: staffProfile, error: profileError } = await supabase
         .from('profiles')
-        .select('tenant_id')
-        .eq('id', user?.id)
+        .select('tenant_id, role')
+        .eq('id', user.id)
         .single()
 
-    if (!staffProfile) return { error: "Unauthorized" }
+    if (profileError) {
+        return { error: `Profile Error: ${profileError.message} (Code: ${profileError.code})` }
+    }
+
+    if (!staffProfile) {
+        return { error: "Profile not found" }
+    }
+
+    // Optional: Enforce role check here if RLS doesn't cover it enough
+    if (!['staff', 'admin', 'owner', 'manager'].includes(staffProfile.role)) {
+        return { error: `Insufficient Role: ${staffProfile.role}` }
+    }
 
     const { error } = await supabase
         .from('points_ledger')
