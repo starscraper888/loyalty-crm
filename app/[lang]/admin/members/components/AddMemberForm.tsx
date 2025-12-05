@@ -38,6 +38,10 @@ export default function AddMemberForm() {
                     <input name="points" type="number" defaultValue="0" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
                 </div>
                 <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                    <input name="password" type="text" placeholder="SecurePassword123" required minLength={6} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
+                </div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
                     <select name="role" defaultValue="member" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white">
                         <option value="member">Member</option>

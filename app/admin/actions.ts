@@ -89,10 +89,15 @@ export async function createMember(formData: FormData) {
     const fullName = formData.get('full_name') as string
     const points = parseInt(formData.get('points') as string) || 0
     const role = formData.get('role') as string || 'member'
+    const password = formData.get('password') as string
 
     const allowedRoles = ['owner', 'manager', 'admin', 'staff', 'member']
     if (!allowedRoles.includes(role)) {
         return { error: "Invalid role selected" }
+    }
+
+    if (!password || password.length < 6) {
+        return { error: "Password must be at least 6 characters long" }
     }
 
     // Get Admin's Tenant ID
@@ -102,10 +107,9 @@ export async function createMember(formData: FormData) {
     }
 
     // 1. Create Auth User
-    // We use phone as password for simplicity in this MVP, or auto-confirm
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
         email: email,
-        password: phone, // Temporary password
+        password: password,
         email_confirm: true,
         user_metadata: {
             full_name: fullName,
