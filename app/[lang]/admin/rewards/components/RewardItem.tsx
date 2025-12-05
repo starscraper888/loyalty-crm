@@ -11,7 +11,7 @@ interface Reward {
     is_active: boolean
 }
 
-export default function RewardItem({ reward }: { reward: Reward }) {
+export default function RewardItem({ reward, isManager }: { reward: Reward, isManager?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -70,29 +70,31 @@ export default function RewardItem({ reward }: { reward: Reward }) {
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">{reward.cost} pts</span>
             </div>
 
-            <div className="mt-4 flex justify-end gap-2 items-center">
-                <button
-                    onClick={() => setIsEditing(true)}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                >
-                    Edit
-                </button>
-                <span className="text-gray-300">|</span>
-                <form action={async () => {
-                    await toggleReward(reward.id, !reward.is_active)
-                }}>
-                    <button className={`text-sm font-medium ${reward.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}`}>
-                        {reward.is_active ? 'Deactivate' : 'Activate'}
+            {!isManager && (
+                <div className="mt-4 flex justify-end gap-2 items-center">
+                    <button
+                        onClick={() => setIsEditing(true)}
+                        className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                    >
+                        Edit
                     </button>
-                </form>
-                <span className="text-gray-300">|</span>
-                <button
-                    onClick={handleDelete}
-                    className="text-sm font-medium text-red-600 hover:text-red-800"
-                >
-                    Delete
-                </button>
-            </div>
+                    <span className="text-gray-300">|</span>
+                    <form action={async () => {
+                        await toggleReward(reward.id, !reward.is_active)
+                    }}>
+                        <button className={`text-sm font-medium ${reward.is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}`}>
+                            {reward.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                    </form>
+                    <span className="text-gray-300">|</span>
+                    <button
+                        onClick={handleDelete}
+                        className="text-sm font-medium text-red-600 hover:text-red-800"
+                    >
+                        Delete
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

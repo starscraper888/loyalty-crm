@@ -14,9 +14,16 @@ export default async function StaffLayout({
         redirect('/en/staff/login')
     }
 
+    // Fetch profile to get role
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <StaffNavbar email={user.email} />
+            <StaffNavbar email={user.email} role={profile?.role} />
             {children}
         </div>
     )

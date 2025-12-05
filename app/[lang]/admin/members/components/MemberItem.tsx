@@ -13,7 +13,7 @@ interface Member {
     created_at: string
 }
 
-export default function MemberItem({ member }: { member: Member }) {
+export default function MemberItem({ member, isManager }: { member: Member, isManager?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -86,8 +86,12 @@ export default function MemberItem({ member }: { member: Member }) {
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{member.role}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{member.points_balance}</td>
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button onClick={() => setIsEditing(true)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
-                <button onClick={handleDelete} className="text-red-600 hover:text-red-900">Delete</button>
+                {!isManager && (
+                    <>
+                        <button onClick={() => setIsEditing(true)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
+                        <button onClick={handleDelete} className="text-red-600 hover:text-red-900">Delete</button>
+                    </>
+                )}
             </td>
         </tr>
     )

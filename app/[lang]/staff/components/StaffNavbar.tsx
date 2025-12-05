@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/auth/actions'
 
-export default function StaffNavbar({ email }: { email?: string }) {
+export default function StaffNavbar({ email, role }: { email?: string, role?: string }) {
     const pathname = usePathname()
     const lang = pathname.split('/')[1] || 'en'
 
     const isActive = (path: string) => pathname === `/${lang}${path}`
+
+    const canAccessAdmin = ['admin', 'owner', 'manager'].includes(role || '')
 
     return (
         <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -42,8 +44,16 @@ export default function StaffNavbar({ email }: { email?: string }) {
 
                         </div>
                     </div>
-                    <div className="flex items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400 mr-4 hidden md:block">{email}</span>
+                    <div className="flex items-center gap-4">
+                        {canAccessAdmin && (
+                            <Link
+                                href={`/${lang}/admin/dashboard`}
+                                className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                            >
+                                Switch to Admin View &rarr;
+                            </Link>
+                        )}
+                        <span className="text-sm text-gray-500 dark:text-gray-400 hidden md:block">{email}</span>
                         <form action={logout}>
                             <button className="text-sm text-red-600 hover:text-red-800 font-medium">
                                 Logout

@@ -33,7 +33,7 @@ export default async function AdminLayout({
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <AdminNavbar email={user.email} />
+            <AdminNavbar email={user.email} role={profile?.role} />
             {children}
         </div>
     )

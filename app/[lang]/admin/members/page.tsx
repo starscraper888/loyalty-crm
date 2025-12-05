@@ -24,6 +24,15 @@ export default async function MembersPage() {
         email: userMap.get(member.id) || 'N/A'
     }))
 
+    // Fetch profile to get role
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user?.id)
+        .single()
+
+    const isManager = profile?.role === 'manager'
+
     return (
         <div className="p-8">
             <div className="max-w-6xl mx-auto">
@@ -31,7 +40,7 @@ export default async function MembersPage() {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
                 </div>
 
-                <AddMemberForm />
+                {!isManager && <AddMemberForm />}
 
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -47,7 +56,7 @@ export default async function MembersPage() {
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {membersWithEmail?.map((member: any) => (
-                                <MemberItem key={member.id} member={member} />
+                                <MemberItem key={member.id} member={member} isManager={isManager} />
                             ))}
                             {!membersWithEmail?.length && (
                                 <tr>

@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/auth/actions'
 
-export default function AdminNavbar({ email }: { email?: string }) {
+export default function AdminNavbar({ email, role }: { email?: string, role?: string }) {
     const pathname = usePathname()
     const lang = pathname.split('/')[1] || 'en'
 
     const isActive = (path: string) => pathname.startsWith(`/${lang}${path}`)
+
+    const isManager = role === 'manager'
 
     return (
         <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -39,12 +41,14 @@ export default function AdminNavbar({ email }: { email?: string }) {
                             >
                                 Members
                             </Link>
-                            <Link
-                                href={`/${lang}/admin/campaigns`}
-                                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/admin/campaigns') ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300'}`}
-                            >
-                                Campaigns
-                            </Link>
+                            {!isManager && (
+                                <Link
+                                    href={`/${lang}/admin/campaigns`}
+                                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/admin/campaigns') ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300'}`}
+                                >
+                                    Campaigns
+                                </Link>
+                            )}
                             <Link
                                 href={`/${lang}/admin/analytics`}
                                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/admin/analytics') ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300'}`}
@@ -53,8 +57,14 @@ export default function AdminNavbar({ email }: { email?: string }) {
                             </Link>
                         </div>
                     </div>
-                    <div className="flex items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400 mr-4 hidden md:block">{email}</span>
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href={`/${lang}/staff/dashboard`}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                            Switch to Staff View &rarr;
+                        </Link>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 hidden md:block">{email}</span>
                         <form action={logout}>
                             <button className="text-sm text-red-600 hover:text-red-800 font-medium">
                                 Logout
