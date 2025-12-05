@@ -82,6 +82,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function createMember(formData: FormData) {
     const supabase = createAdminClient()
+    const userSupabase = await createClient() // For getting current admin's context
+
     const email = formData.get('email') as string
     const phone = formData.get('phone') as string
     const fullName = formData.get('full_name') as string
@@ -91,6 +93,12 @@ export async function createMember(formData: FormData) {
     const allowedRoles = ['owner', 'manager', 'admin', 'staff', 'member']
     if (!allowedRoles.includes(role)) {
         return { error: "Invalid role selected" }
+    }
+
+    // Get Admin's Tenant ID
+    const { data: tenantId, error: tenantError } = await userSupabase.rpc('get_my_tenant_id')
+    if (tenantError || !tenantId) {
+        return { error: "Could not determine your tenant ID." }
     }
 
     // 1. Create Auth User
@@ -110,7 +118,7 @@ export async function createMember(formData: FormData) {
         return { error: "Failed to create user" }
     }
 
-    // 2. Update Profile (Trigger might have created it, but we need to set phone and points)
+    // 2. Update Profile (Trigger might have created it, but we need to set phone, points AND tenant_id)
     // The trigger usually sets id, email. We need to update the rest.
     const { error: profileError } = await supabase
         .from('profiles')
@@ -118,7 +126,8 @@ export async function createMember(formData: FormData) {
             full_name: fullName,
             phone: phone,
             points_balance: points,
-            role: role
+            role: role,
+            tenant_id: tenantId
         })
         .eq('id', authUser.user.id)
 
