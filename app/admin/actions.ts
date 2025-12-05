@@ -107,7 +107,11 @@ export async function createMember(formData: FormData) {
         email: email,
         password: phone, // Temporary password
         email_confirm: true,
-        user_metadata: { full_name: fullName }
+        user_metadata: {
+            full_name: fullName,
+            tenant_id: tenantId,
+            role: role
+        }
     })
 
     if (authError) {
@@ -118,8 +122,8 @@ export async function createMember(formData: FormData) {
         return { error: "Failed to create user" }
     }
 
-    // 2. Update Profile (Trigger might have created it, but we need to set phone, points AND tenant_id)
-    // The trigger usually sets id, email. We need to update the rest.
+    // 2. Update Profile (Trigger SHOULD have created it now)
+    // We still update to ensure phone and points are set if the trigger missed them or for redundancy
     const { error: profileError } = await supabase
         .from('profiles')
         .update({
