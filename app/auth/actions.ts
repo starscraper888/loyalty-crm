@@ -5,22 +5,30 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 export async function login(prevState: any, formData: FormData) {
-    const supabase = await createClient()
+    try {
+        const supabase = await createClient()
 
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
+        const email = formData.get('email') as string
+        const password = formData.get('password') as string
 
-    const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-    })
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        })
 
-    if (error) {
-        return { error: error.message }
+        if (error) {
+            return { error: error.message }
+        }
+    } catch (error) {
+        // Next.js redirects throw an error, so we need to rethrow it
+        if ((error as Error).message === 'NEXT_REDIRECT') {
+            throw error
+        }
+        return { error: 'An unexpected error occurred' }
     }
 
     revalidatePath('/', 'layout')
-    redirect('/en/staff/dashboard') // Default to EN for now, ideally dynamic
+    redirect('/en/staff/dashboard')
 }
 
 export async function logout() {
