@@ -6,6 +6,7 @@ import { updateMember, deleteMember } from '@/app/admin/actions'
 interface Member {
     id: string
     full_name: string
+    email?: string
     phone: string
     points_balance: number
     role: string
@@ -38,11 +39,15 @@ export default function MemberItem({ member }: { member: Member }) {
     if (isEditing) {
         return (
             <tr className="bg-blue-50 dark:bg-blue-900/20">
-                <td colSpan={5} className="px-6 py-4">
+                <td colSpan={6} className="px-6 py-4">
                     <form action={handleUpdate} className="flex gap-4 items-center flex-wrap">
                         <div className="flex-1 min-w-[150px]">
                             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">Name</label>
                             <input name="full_name" type="text" defaultValue={member.full_name} required className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:text-white" />
+                        </div>
+                        <div className="flex-1 min-w-[150px]">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">Email (Read-only)</label>
+                            <input type="text" value={member.email || 'N/A'} disabled className="w-full px-2 py-1 border rounded text-sm bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 cursor-not-allowed" />
                         </div>
                         <div className="flex-1 min-w-[150px]">
                             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">Phone</label>
@@ -76,6 +81,7 @@ export default function MemberItem({ member }: { member: Member }) {
     return (
         <tr>
             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{member.full_name || 'N/A'}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{member.email || 'N/A'}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{member.phone}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{member.role}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{member.points_balance}</td>

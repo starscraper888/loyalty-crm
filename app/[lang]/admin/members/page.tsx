@@ -1,16 +1,28 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import MemberItem from './components/MemberItem'
 import AddMemberForm from './components/AddMemberForm'
 
 export default async function MembersPage() {
     const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
-    // In a real app, we'd have pagination and search
+    // Fetch profiles
     const { data: members } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
-    // .limit(20)
+
+    // Fetch auth users to get emails
+    const { data: { users } } = await adminSupabase.auth.admin.listUsers()
+
+    // Map emails to profiles
+    const userMap = new Map(users?.map(u => [u.id, u.email]) || [])
+
+    const membersWithEmail = members?.map((member: any) => ({
+        ...member,
+        email: userMap.get(member.id) || 'N/A'
+    }))
 
     return (
         <div className="p-8">
@@ -26,6 +38,7 @@ export default async function MembersPage() {
                         <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Phone</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Points</th>
@@ -33,12 +46,12 @@ export default async function MembersPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {members?.map((member: any) => (
+                            {membersWithEmail?.map((member: any) => (
                                 <MemberItem key={member.id} member={member} />
                             ))}
-                            {!members?.length && (
+                            {!membersWithEmail?.length && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">No members found</td>
+                                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">No members found</td>
                                 </tr>
                             )}
                         </tbody>
