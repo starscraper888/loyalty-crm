@@ -11,7 +11,7 @@ export async function login(prevState: any, formData: FormData) {
         const email = formData.get('email') as string
         const password = formData.get('password') as string
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: { user }, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         })
@@ -19,6 +19,23 @@ export async function login(prevState: any, formData: FormData) {
         if (error) {
             return { error: error.message }
         }
+
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+
+            revalidatePath('/', 'layout')
+
+            if (profile && ['admin', 'owner', 'manager'].includes(profile.role)) {
+                redirect('/en/admin/dashboard')
+            } else {
+                redirect('/en/staff/dashboard')
+            }
+        }
+
     } catch (error) {
         // Next.js redirects throw an error, so we need to rethrow it
         if ((error as Error).message === 'NEXT_REDIRECT') {
@@ -27,8 +44,8 @@ export async function login(prevState: any, formData: FormData) {
         return { error: 'An unexpected error occurred' }
     }
 
-    revalidatePath('/', 'layout')
-    redirect('/en/staff/dashboard')
+    // Fallback if no user (shouldn't happen if no error)
+    return { error: 'Login failed' }
 }
 
 export async function logout() {
