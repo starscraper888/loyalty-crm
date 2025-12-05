@@ -4,14 +4,16 @@ export default async function DashboardPage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    if (!user) return <div>Unauthorized</div>
+
     // Get tenant_id
-    const { data: staffProfile } = await supabase
+    const { data: staffProfile, error } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user?.id)
-        .single()
+        .eq('id', user.id)
+        .maybeSingle()
 
-    if (!staffProfile) return <div>Unauthorized</div>
+    if (error || !staffProfile) return <div>Unauthorized (No Profile)</div>
 
     // 1. Total Members
     const { count: memberCount } = await supabase

@@ -23,7 +23,7 @@ export default function AnalyticsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t.title}</h1>
 
@@ -35,8 +35,8 @@ export default function AnalyticsPage() {
                                     key={l}
                                     onClick={() => setLocale(l)}
                                     className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${locale === l
-                                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
-                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                                         }`}
                                 >
                                     {l.toUpperCase()}

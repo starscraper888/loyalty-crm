@@ -39,12 +39,7 @@ export default function StaffNavbar({ email }: { email?: string }) {
                             >
                                 Redeem
                             </Link>
-                            <Link
-                                href={`/${lang}/admin/rewards`}
-                                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/admin/rewards') ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300'}`}
-                            >
-                                Rewards
-                            </Link>
+
                         </div>
                     </div>
                     <div className="flex items-center">
