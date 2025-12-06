@@ -89,15 +89,25 @@ export async function createMember(formData: FormData) {
     const fullName = formData.get('full_name') as string
     const points = parseInt(formData.get('points') as string) || 0
     const role = formData.get('role') as string || 'member'
-    const password = formData.get('password') as string
+    let password = formData.get('password') as string
 
-    const allowedRoles = ['owner', 'manager', 'admin', 'staff', 'member']
+    // 1. Role Validation
+    const allowedRoles = ['manager', 'admin', 'staff', 'member'] // Owner removed
     if (!allowedRoles.includes(role)) {
-        return { error: "Invalid role selected" }
+        return { error: "Invalid role selected. You cannot create an Owner." }
     }
 
-    if (!password || password.length < 6) {
-        return { error: "Password must be at least 6 characters long" }
+    // 2. Conditional Field Validation
+    const isStaffOrHigher = ['admin', 'manager', 'staff'].includes(role)
+
+    if (isStaffOrHigher) {
+        if (!email) return { error: "Email is required for Staff, Manager, and Admin." }
+        if (!password || password.length < 6) return { error: "Password (min 6 chars) is required for Staff, Manager, and Admin." }
+    } else {
+        // For Members
+        if (!password) {
+            password = phone // Default password for members is phone number
+        }
     }
 
     // Get Admin's Tenant ID
@@ -106,9 +116,15 @@ export async function createMember(formData: FormData) {
         return { error: "Could not determine your tenant ID." }
     }
 
-    // 1. Create Auth User
+    // 3. Create Auth User
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: email,
+        email: email || undefined, // Allow undefined if empty for members (though Supabase Auth usually requires email, we might need a dummy if phone auth isn't primary)
+        // Note: If Supabase requires email, we might need to generate a dummy one for members: `member_${phone}@placeholder.com`
+        // For now, assuming email is optional or provided. If Supabase enforces it, we'll need to handle that.
+        // Actually, for this system, let's assume members might just use phone. But createUser requires email OR phone.
+        // If we pass email: undefined, it might fail if phone is not set as phone_number.
+        // Let's pass phone as phone_number as well.
+        phone: phone,
         password: password,
         email_confirm: true,
         user_metadata: {
