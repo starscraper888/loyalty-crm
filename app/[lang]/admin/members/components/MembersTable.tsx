@@ -7,9 +7,10 @@ import MemberItem from '@/app/[lang]/admin/members/components/MemberItem'
 interface MembersTableProps {
     initialMembers: Member[]
     isManager?: boolean
+    currentUserRole?: string
 }
 
-export default function MembersTable({ initialMembers, isManager }: MembersTableProps) {
+export default function MembersTable({ initialMembers, isManager, currentUserRole }: MembersTableProps) {
     const [search, setSearch] = useState('')
     const [roleFilter, setRoleFilter] = useState('all')
     const [sortConfig, setSortConfig] = useState<{ key: keyof Member; direction: 'asc' | 'desc' } | null>(null)
@@ -17,6 +18,11 @@ export default function MembersTable({ initialMembers, isManager }: MembersTable
     // Filter and Sort Logic
     const filteredMembers = useMemo(() => {
         let items = [...initialMembers]
+
+        // 0. Hide Owner from Non-Owners
+        if (currentUserRole !== 'owner') {
+            items = items.filter(member => member.role !== 'owner')
+        }
 
         // 1. Filter by Role
         if (roleFilter !== 'all') {

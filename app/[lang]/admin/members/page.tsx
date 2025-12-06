@@ -31,7 +31,8 @@ export default async function MembersPage() {
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single()
 
-    const isManager = profile?.role === 'manager'
+    const currentUserRole = profile?.role
+    const isManager = currentUserRole === 'manager'
 
     return (
         <div className="p-8">
@@ -42,7 +43,7 @@ export default async function MembersPage() {
 
                 {!isManager && <AddMemberForm />}
 
-                <MembersTable initialMembers={membersWithEmail || []} isManager={isManager} />
+                <MembersTable initialMembers={membersWithEmail || []} isManager={isManager} currentUserRole={currentUserRole} />
             </div>
         </div>
     )
