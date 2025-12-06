@@ -188,6 +188,20 @@ export async function updateMember(id: string, formData: FormData) {
         updates.role = role
     }
 
+    // 1. Update Auth User (Sync Phone & Metadata)
+    const { error: authError } = await adminSupabase.auth.admin.updateUserById(id, {
+        phone: phone,
+        user_metadata: {
+            full_name: fullName,
+            role: role
+        }
+    })
+
+    if (authError) {
+        return { error: `Auth Update Failed: ${authError.message}` }
+    }
+
+    // 2. Update Profile
     const { error } = await adminSupabase
         .from('profiles')
         .update(updates)
