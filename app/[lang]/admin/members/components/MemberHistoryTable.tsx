@@ -14,6 +14,27 @@ interface MemberHistoryTableProps {
     transactions: Transaction[]
 }
 
+// Helper to format date/time in GMT+8
+function formatDateTimeGMT8(dateString: string) {
+    const date = new Date(dateString)
+    // Format with Asia/Singapore timezone (GMT+8)
+    const dateStr = date.toLocaleDateString('en-GB', {
+        timeZone: 'Asia/Singapore',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    })
+    const timeStr = date.toLocaleTimeString('en-GB', {
+        timeZone: 'Asia/Singapore',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    })
+    return { dateStr, timeStr, full: `${dateStr} ${timeStr}` }
+}
+
+
 export default function MemberHistoryTable({ transactions }: MemberHistoryTableProps) {
     const [sortConfig, setSortConfig] = useState<{ key: keyof Transaction; direction: 'asc' | 'desc' } | null>({ key: 'created_at', direction: 'desc' })
 
@@ -48,10 +69,10 @@ export default function MemberHistoryTable({ transactions }: MemberHistoryTableP
         const csvContent = [
             headers.join(','),
             ...sortedTransactions.map(t => {
-                const date = new Date(t.created_at)
+                const { dateStr, timeStr } = formatDateTimeGMT8(t.created_at)
                 return [
-                    `"${date.toLocaleDateString()}"`,
-                    `"${date.toLocaleTimeString()}"`,
+                    `"${dateStr}"`,
+                    `"${timeStr}"`,
                     t.type,
                     t.points,
                     `"${t.description || ''}"`
@@ -97,28 +118,32 @@ export default function MemberHistoryTable({ transactions }: MemberHistoryTableP
                 </div>
 
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {sortedTransactions.map((t) => (
-                        <div key={t.id} className="p-4 grid grid-cols-12 gap-4 items-center hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-                            <div className="col-span-3 text-sm text-gray-900 dark:text-white">
-                                {new Date(t.created_at).toLocaleString()}
-                            </div>
-                            <div className="col-span-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${t.type === 'earn'
+                    {sortedTransactions.map((t) => {
+                        const { dateStr, timeStr } = formatDateTimeGMT8(t.created_at)
+                        return (
+                            <div key={t.id} className="p-4 grid grid-cols-12 gap-4 items-center hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                                <div className="col-span-3 text-sm text-gray-900 dark:text-white">
+                                    <div className="font-medium">{dateStr}</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">{timeStr}</div>
+                                </div>
+                                <div className="col-span-2">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${t.type === 'earn'
                                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                                         : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                        }`}>
+                                        {t.type.toUpperCase()}
+                                    </span>
+                                </div>
+                                <div className={`col-span-2 text-sm font-bold ${t.type === 'earn' ? 'text-green-600' : 'text-red-600'
                                     }`}>
-                                    {t.type.toUpperCase()}
-                                </span>
+                                    {t.type === 'earn' ? '+' : '-'}{t.points}
+                                </div>
+                                <div className="col-span-5 text-sm text-gray-500 dark:text-gray-400 truncate" title={t.description}>
+                                    {t.description || '-'}
+                                </div>
                             </div>
-                            <div className={`col-span-2 text-sm font-bold ${t.type === 'earn' ? 'text-green-600' : 'text-red-600'
-                                }`}>
-                                {t.type === 'earn' ? '+' : '-'}{t.points}
-                            </div>
-                            <div className="col-span-5 text-sm text-gray-500 dark:text-gray-400 truncate" title={t.description}>
-                                {t.description || '-'}
-                            </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                     {sortedTransactions.length === 0 && (
                         <div className="p-8 text-center text-gray-500">No transactions found.</div>
                     )}
