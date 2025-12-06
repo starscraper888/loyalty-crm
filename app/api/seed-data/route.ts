@@ -67,7 +67,7 @@ export async function GET() {
                 .update({ created_at: createdAt.toISOString() })
                 .eq('id', authUser.user!.id)
 
-            createdMembers.push({ ...member, id: authUser.user!.id })
+            createdMembers.push({ ...member, id: authUser.user!.id, skipped: false })
 
             // Add sample transactions
             const transactions = generateTransactions(member.name, authUser.user!.id, tenantId, member.monthsAgo)
