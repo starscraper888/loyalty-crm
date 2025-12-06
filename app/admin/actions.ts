@@ -110,13 +110,42 @@ export async function createMember(formData: FormData) {
         }
     }
 
+    // 3. Duplicate Check (Friendly Message)
+    if (email) {
+        const { data: existingEmail } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', email) // Assuming email column exists in profiles or we check auth.users via admin
+        // Actually profiles might not have email synced yet if we didn't add it. 
+        // But we can check auth.users using admin client.
+
+        // Better to check profiles if we sync email there, but we only sync phone/name.
+        // Let's check auth.users directly for email.
+        const { data: usersWithEmail } = await supabase.auth.admin.listUsers()
+        const duplicateEmail = usersWithEmail.users.find(u => u.email === email)
+        if (duplicateEmail) {
+            return { error: "This email address is already registered." }
+        }
+    }
+
+    // Check Phone in Profiles (since we sync it and have unique constraint)
+    const { data: existingPhone } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('phone', phone)
+        .single()
+
+    if (existingPhone) {
+        return { error: "This phone number is already registered." }
+    }
+
     // Get Admin's Tenant ID
     const { data: tenantId, error: tenantError } = await userSupabase.rpc('get_my_tenant_id')
     if (tenantError || !tenantId) {
         return { error: "Could not determine your tenant ID." }
     }
 
-    // 3. Create Auth User
+    // 4. Create Auth User
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
         email: email || undefined, // Allow undefined if empty for members (though Supabase Auth usually requires email, we might need a dummy if phone auth isn't primary)
         // Note: If Supabase requires email, we might need to generate a dummy one for members: `member_${phone}@placeholder.com`
@@ -188,7 +217,20 @@ export async function updateMember(id: string, formData: FormData) {
         updates.role = role
     }
 
-    // 1. Update Auth User (Sync Phone & Metadata)
+    // 1. Duplicate Check (Phone)
+    // Check if another user already has this phone number
+    const { data: existingPhone } = await adminSupabase
+        .from('profiles')
+        .select('id')
+        .eq('phone', phone)
+        .neq('id', id) // Exclude current user
+        .single()
+
+    if (existingPhone) {
+        return { error: "This phone number is already registered to another user." }
+    }
+
+    // 2. Update Auth User (Sync Phone & Metadata)
     const { error: authError } = await adminSupabase.auth.admin.updateUserById(id, {
         phone: phone,
         user_metadata: {
@@ -201,7 +243,7 @@ export async function updateMember(id: string, formData: FormData) {
         return { error: `Auth Update Failed: ${authError.message}` }
     }
 
-    // 2. Update Profile
+    // 3. Update Profile
     const { error } = await adminSupabase
         .from('profiles')
         .update(updates)
