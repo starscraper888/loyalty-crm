@@ -2,19 +2,38 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { uploadRewardImage, deleteRewardImage } from '@/lib/storage/images'
 
 export async function createReward(formData: FormData) {
     const supabase = await createClient()
     const name = formData.get('name') as string
     const cost = parseInt(formData.get('cost') as string)
     const description = formData.get('description') as string
+    const imageFile = formData.get('image') as File | null
 
-    const { error } = await supabase
+    // Insert reward first to get ID
+    const { data: reward, error } = await supabase
         .from('rewards')
         .insert({ name, cost, description, tenant_id: (await supabase.rpc('get_my_tenant_id')).data })
+        .select()
+        .single()
 
     if (error) {
         return { error: error.message }
+    }
+
+    // Upload image if provided
+    if (imageFile && imageFile.size > 0) {
+        const { url, error: imageError } = await uploadRewardImage(imageFile, reward.id)
+        if (imageError) {
+            return { error: imageError }
+        }
+        if (url) {
+            await supabase
+                .from('rewards')
+                .update({ image_url: url })
+                .eq('id', reward.id)
+        }
     }
 
     revalidatePath('/admin/rewards')
@@ -42,10 +61,24 @@ export async function updateReward(id: string, formData: FormData) {
     const name = formData.get('name') as string
     const cost = parseInt(formData.get('cost') as string)
     const description = formData.get('description') as string
+    const imageFile = formData.get('image') as File | null
+
+    const updates: any = { name, cost, description }
+
+    // Upload new image if provided
+    if (imageFile && imageFile.size > 0) {
+        const { url, error: imageError } = await uploadRewardImage(imageFile, id)
+        if (imageError) {
+            return { error: imageError }
+        }
+        if (url) {
+            updates.image_url = url
+        }
+    }
 
     const { error } = await supabase
         .from('rewards')
-        .update({ name, cost, description })
+        .update(updates)
         .eq('id', id)
 
     if (error) {
@@ -59,6 +92,13 @@ export async function updateReward(id: string, formData: FormData) {
 export async function deleteReward(id: string) {
     const supabase = await createClient()
 
+    // Get image URL before deleting
+    const { data: reward } = await supabase
+        .from('rewards')
+        .select('image_url')
+        .eq('id', id)
+        .single()
+
     const { error } = await supabase
         .from('rewards')
         .delete()
@@ -70,6 +110,11 @@ export async function deleteReward(id: string) {
             return { error: "Cannot delete this reward because it has already been redeemed by customers. Deactivate it instead." }
         }
         return { error: error.message }
+    }
+
+    // Delete image from storage
+    if (reward?.image_url) {
+        await deleteRewardImage(reward.image_url)
     }
 
     revalidatePath('/admin/rewards')

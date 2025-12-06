@@ -9,6 +9,7 @@ interface Reward {
     cost: number
     description: string
     is_active: boolean
+    image_url?: string
 }
 
 export default function RewardItem({ reward, isManager }: { reward: Reward, isManager?: boolean }) {
@@ -50,6 +51,15 @@ export default function RewardItem({ reward, isManager }: { reward: Reward, isMa
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                         <input name="description" type="text" defaultValue={reward.description} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image (512×512 recommended)</label>
+                        {reward.image_url && (
+                            <div className="mb-2">
+                                <img src={reward.image_url} alt={reward.name} className="w-24 h-24 object-cover rounded border" />
+                            </div>
+                        )}
+                        <input name="image" type="file" accept="image/jpeg,image/png,image/webp" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    </div>
                     {error && <p className="text-red-500 text-sm">{error}</p>}
                     <div className="flex justify-end gap-2">
                         <button type="button" onClick={() => setIsEditing(false)} className="px-3 py-1 text-gray-600 hover:text-gray-800">Cancel</button>
@@ -62,6 +72,15 @@ export default function RewardItem({ reward, isManager }: { reward: Reward, isMa
 
     return (
         <div className={`p-6 rounded-xl shadow border ${reward.is_active ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800 opacity-75'}`}>
+            {reward.image_url && (
+                <div className="mb-4">
+                    <img
+                        src={reward.image_url}
+                        alt={reward.name}
+                        className="w-full h-40 object-cover rounded-lg"
+                    />
+                </div>
+            )}
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">{reward.name}</h3>

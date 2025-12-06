@@ -31,21 +31,24 @@ export default async function RewardsPage() {
                         <form action={async (formData) => {
                             'use server'
                             await createReward(formData)
-                        }} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                                <input name="name" type="text" required className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cost (Points)</label>
-                                <input name="cost" type="number" required className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                                <div className="flex gap-2">
-                                    <input name="description" type="text" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
-                                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add</button>
+                        }} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                    <input name="name" type="text" required className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cost (Points)</label>
+                                    <input name="cost" type="number" required className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image (512×512 recommended)</label>
+                                    <input name="image" type="file" accept="image/jpeg,image/png,image/webp" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white file:mr-4 file:py-1 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <input name="description" type="text" placeholder="Description (optional)" className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white" />
+                                <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Add Reward</button>
                             </div>
                         </form>
                     </div>
