@@ -29,6 +29,61 @@ export async function handleWhatsAppMessage(from: string, body: string) {
         // 5 minutes expiry
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString()
 
+        // First, check if profile exists
+        const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id, tenant_id')
+            .eq('phone', from)
+            .single()
+
+        if (!existingProfile) {
+            // New customer - create a basic profile first
+            // We need a tenant_id. For now, we'll use a default tenant or the first one
+            // In production, you might handle this differently
+            const { data: firstTenant } = await supabase
+                .from('profiles')
+                .select('tenant_id')
+                .limit(1)
+                .single()
+
+            if (!firstTenant) {
+                return "Sorry, system not configured properly. Please contact support."
+            }
+
+            // Create auth user for this phone
+            const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+                phone: from,
+                password: from, // Default password = phone
+                email_confirm: true,
+                user_metadata: {
+                    full_name: `Customer ${from}`,
+                    tenant_id: firstTenant.tenant_id,
+                    role: 'member'
+                }
+            })
+
+            if (authError || !authUser.user) {
+                console.error('Failed to create user for OTP:', authError)
+                return "Sorry, registration failed. Please try again or contact staff."
+            }
+
+            // Update the newly created profile
+            await supabase
+                .from('profiles')
+                .update({
+                    full_name: `Customer ${from}`,
+                    phone: from,
+                    role: 'member',
+                    tenant_id: firstTenant.tenant_id,
+                    otp_code: otp,
+                    otp_expires_at: expiresAt
+                })
+                .eq('id', authUser.user.id)
+
+            return `Welcome! Your One-Time Code is: *${otp}*\n\nShow this to the staff to verify your identity. Valid for 5 minutes.`
+        }
+
+        // Existing customer - just update OTP
         const { error } = await supabase
             .from('profiles')
             .update({
