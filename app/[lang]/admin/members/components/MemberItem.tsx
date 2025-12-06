@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { updateMember, deleteMember } from '@/app/admin/actions'
+import Link from 'next/link'
 
 export interface Member {
     id: string
@@ -78,7 +79,11 @@ export default function MemberItem({ member, isManager }: { member: Member, isMa
 
     return (
         <div className="grid grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-            <div className="col-span-3 text-sm font-medium text-gray-900 dark:text-white truncate" title={member.full_name}>{member.full_name || 'N/A'}</div>
+            <div className="col-span-3 text-sm font-medium text-gray-900 dark:text-white truncate" title={member.full_name}>
+                <Link href={`/en/admin/members/${member.id}`} className="hover:underline hover:text-blue-600">
+                    {member.full_name || 'N/A'}
+                </Link>
+            </div>
             <div className="col-span-3 text-sm text-gray-500 dark:text-gray-300 truncate" title={member.email}>{member.email || 'N/A'}</div>
             <div className="col-span-2 text-sm text-gray-500 dark:text-gray-300 truncate">{member.phone}</div>
             <div className="col-span-1 text-sm text-gray-500 dark:text-gray-300 capitalize">{member.role}</div>
