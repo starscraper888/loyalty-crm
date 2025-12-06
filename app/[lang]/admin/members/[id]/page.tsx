@@ -59,7 +59,21 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow border border-gray-100 dark:border-gray-700">
                         <div className="text-sm text-gray-500 dark:text-gray-400">Joined Date</div>
                         <div className="font-medium text-gray-900 dark:text-white">
-                            {new Date(profile.created_at).toLocaleDateString()}
+                            {new Date(profile.created_at).toLocaleDateString('en-GB', {
+                                timeZone: 'Asia/Singapore',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit'
+                            })}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {new Date(profile.created_at).toLocaleTimeString('en-GB', {
+                                timeZone: 'Asia/Singapore',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false
+                            })}
                         </div>
                     </div>
                 </div>
