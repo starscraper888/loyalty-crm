@@ -288,7 +288,38 @@ export async function updateMember(id: string, formData: FormData) {
         return { error: `Auth Update Failed: ${authError.message}` }
     }
 
-    // 3. Update Profile
+    // 3. Fetch Current Points Balance (Before Update)
+    const { data: currentProfile } = await adminSupabase
+        .from('profiles')
+        .select('points_balance, tenant_id')
+        .eq('id', id)
+        .single()
+
+    // 4. Log Manual Point Adjustment (if points changed)
+    if (currentProfile && currentProfile.points_balance !== points) {
+        const pointsDelta = points - currentProfile.points_balance
+        const adjustmentType = pointsDelta > 0 ? 'earn' : 'redeem'
+        const absoluteDelta = Math.abs(pointsDelta)
+
+        // Get current admin user
+        const { data: { user: admin } } = await supabase.auth.getUser()
+
+        await adminSupabase
+            .from('points_ledger')
+            .insert({
+                profile_id: id,
+                tenant_id: currentProfile.tenant_id,
+                points: adjustmentType === 'earn' ? absoluteDelta : -absoluteDelta,
+                type: adjustmentType,
+                description: `Manual adjustment by admin (${admin?.email || 'unknown'})`
+            })
+    }
+
+    // 5. Update Profile (This will trigger sync_points_balance, but since we're setting it explicitly, it's redundant)
+    // Actually, we should NOT update points_balance directly if we're logging to ledger, as the trigger handles it
+    // Remove points_balance from updates
+    delete updates.points_balance
+
     const { error } = await adminSupabase
         .from('profiles')
         .update(updates)
