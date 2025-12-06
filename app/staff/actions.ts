@@ -1,8 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
-import { notifyPointsIssued, notifyRewardRedeemed } from '@/lib/whatsapp/notifications'
+import { notifyPointsIssued, notifyRewardRedeemed, notifyWelcome } from '@/lib/whatsapp/notifications'
 
 export async function lookupCustomer(identifier: string) {
     const supabase = await createClient()
@@ -204,4 +205,129 @@ export async function getRewards() {
         .order('cost', { ascending: true })
 
     return data || []
+}
+
+export async function quickCreateAndIssuePoints(
+    phone: string,
+    fullName: string,
+    points: number,
+    description: string
+) {
+    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
+
+    // Get staff context
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "User not logged in" }
+    }
+
+    const { data: staffProfile } = await supabase
+        .from('profiles')
+        .select('tenant_id, role')
+        .eq('id', user.id)
+        .single()
+
+    if (!staffProfile) {
+        return { error: "Unauthorized" }
+    }
+
+    // Verify staff has permission
+    if (!['staff', 'admin', 'owner', 'manager'].includes(staffProfile.role)) {
+        return { error: "Insufficient permissions" }
+    }
+
+    // Check if member already exists
+    const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('phone', phone)
+        .single()
+
+    if (existing) {
+        return { error: "Customer already exists. Please use phone lookup instead." }
+    }
+
+    try {
+        // Create auth user with phone
+        const { data: authUser, error: authError } = await adminSupabase.auth.admin.createUser({
+            phone: phone,
+            password: phone, // Default password = phone number
+            email_confirm: true,
+            user_metadata: {
+                full_name: fullName || `Customer ${phone}`,
+                tenant_id: staffProfile.tenant_id,
+                role: 'member'
+            }
+        })
+
+        if (authError || !authUser.user) {
+            return { error: `Failed to create user: ${authError?.message}` }
+        }
+
+        // Update profile with full details
+        const { error: profileError } = await adminSupabase
+            .from('profiles')
+            .update({
+                full_name: fullName || `Customer ${phone}`,
+                phone: phone,
+                role: 'member',
+                tenant_id: staffProfile.tenant_id
+            })
+            .eq('id', authUser.user.id)
+
+        if (profileError) {
+            return { error: `Profile update failed: ${profileError.message}` }
+        }
+
+        // Issue points immediately
+        const { error: ledgerError } = await supabase
+            .from('points_ledger')
+            .insert({
+                tenant_id: staffProfile.tenant_id,
+                profile_id: authUser.user.id,
+                points: points,
+                type: 'earn',
+                description: description || 'First purchase'
+            })
+
+        if (ledgerError) {
+            return { error: `Failed to issue points: ${ledgerError.message}` }
+        }
+
+        // Get final profile with updated balance
+        const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('id, full_name, phone, points_balance')
+            .eq('id', authUser.user.id)
+            .single()
+
+        if (!newProfile) {
+            return { error: "Failed to retrieve new member profile" }
+        }
+
+        // Send welcome notification (async, don't wait)
+        if (newProfile.phone) {
+            notifyWelcome(
+                newProfile.phone,
+                newProfile.full_name || 'Customer',
+                newProfile.points_balance
+            ).catch(err => console.error('Welcome notification failed:', err))
+        }
+
+        revalidatePath('/staff/issue')
+        revalidatePath('/admin/members')
+
+        return {
+            success: true,
+            message: `New member created and ${points} points issued!`,
+            profile: newProfile,
+            newBalance: newProfile.points_balance
+        }
+
+    } catch (error: any) {
+        console.error('Quick create error:', error)
+        return { error: error.message || "Unknown error occurred" }
+    }
 }

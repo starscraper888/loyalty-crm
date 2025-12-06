@@ -1,23 +1,53 @@
 'use client'
 
-import { lookupCustomer, issuePoints } from '@/app/staff/actions'
+import { lookupCustomer, issuePoints, quickCreateAndIssuePoints } from '@/app/staff/actions'
 import { useState } from 'react'
 
 export default function IssuePointsPage() {
-    const [step, setStep] = useState<'lookup' | 'issue'>('lookup')
+    const [step, setStep] = useState<'lookup' | 'issue' | 'quickreg'>('lookup')
     const [profile, setProfile] = useState<any>(null)
     const [message, setMessage] = useState('')
+    const [newMemberPhone, setNewMemberPhone] = useState('')
 
     async function handleLookup(formData: FormData) {
         const identifier = formData.get('identifier') as string
         const result = await lookupCustomer(identifier)
 
         if (result.error) {
-            alert(result.error)
+            // If customer not found, offer quick registration
+            if (result.error === "Customer not found") {
+                setNewMemberPhone(identifier)
+                setStep('quickreg')
+                setMessage('')
+            } else {
+                alert(result.error)
+            }
         } else if (result.success) {
             setProfile(result.profile)
             setStep('issue')
             setMessage('')
+        }
+    }
+
+    async function handleQuickCreate(formData: FormData) {
+        const fullName = formData.get('full_name') as string
+        const points = parseInt(formData.get('points') as string)
+        const description = formData.get('description') as string
+
+        const result = await quickCreateAndIssuePoints(
+            newMemberPhone,
+            fullName,
+            points,
+            description
+        )
+
+        if (result?.error) {
+            alert(result.error)
+        } else if (result?.success) {
+            setMessage(result.message || 'Success')
+            setStep('lookup')
+            setProfile(null)
+            setNewMemberPhone('')
         }
     }
 
@@ -73,6 +103,64 @@ export default function IssuePointsPage() {
                         <a href="/en/staff/dashboard" className="block text-center text-gray-500 hover:underline">
                             Cancel
                         </a>
+                    </form>
+                ) : step === 'quickreg' ? (
+                    <form action={handleQuickCreate} className="space-y-6">
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
+                            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">📱 New Customer</p>
+                            <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">{newMemberPhone}</p>
+                            <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">This phone number is not registered. Create a new member below.</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Name</label>
+                            <input
+                                name="full_name"
+                                type="text"
+                                placeholder="Enter customer name"
+                                required
+                                className="w-full px-4 py-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Customer's full name</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Points to Issue</label>
+                            <input
+                                name="points"
+                                type="number"
+                                placeholder="100"
+                                required
+                                min="1"
+                                className="w-full px-4 py-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <input
+                                name="description"
+                                type="text"
+                                placeholder="First purchase"
+                                className="w-full px-4 py-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => { setStep('lookup'); setNewMemberPhone('') }}
+                                className="w-1/3 px-4 py-3 font-bold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                            >
+                                Back
+                            </button>
+                            <button
+                                type="submit"
+                                className="w-2/3 px-4 py-3 font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                                Create & Issue Points
+                            </button>
+                        </div>
                     </form>
                 ) : (
                     <form action={handleIssue} className="space-y-6">
