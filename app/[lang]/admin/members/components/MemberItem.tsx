@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { updateMember, deleteMember } from '@/app/admin/actions'
 
-interface Member {
+export interface Member {
     id: string
     full_name: string
     email?: string
