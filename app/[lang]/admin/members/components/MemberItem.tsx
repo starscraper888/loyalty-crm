@@ -78,16 +78,16 @@ export default function MemberItem({ member, isManager }: { member: Member, isMa
     }
 
     return (
-        <div className="grid grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-            <div className="col-span-3 text-sm font-medium text-gray-900 dark:text-white truncate" title={member.full_name}>
+        <div className="group grid grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200">
+            <div className="col-span-3 text-sm font-medium group-hover:font-bold text-gray-900 dark:text-white truncate transition-all" title={member.full_name}>
                 <Link href={`/en/admin/members/${member.id}`} className="hover:underline hover:text-blue-600">
                     {member.full_name || 'N/A'}
                 </Link>
             </div>
-            <div className="col-span-3 text-sm text-gray-500 dark:text-gray-300 truncate" title={member.email}>{member.email || 'N/A'}</div>
-            <div className="col-span-2 text-sm text-gray-500 dark:text-gray-300 truncate">{member.phone}</div>
-            <div className="col-span-1 text-sm text-gray-500 dark:text-gray-300 capitalize">{member.role}</div>
-            <div className="col-span-1 text-sm text-gray-500 dark:text-gray-300">{member.points_balance}</div>
+            <div className="col-span-3 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold truncate transition-all" title={member.email}>{member.email || 'N/A'}</div>
+            <div className="col-span-2 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold truncate transition-all">{member.phone}</div>
+            <div className="col-span-1 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold capitalize transition-all">{member.role}</div>
+            <div className="col-span-1 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold transition-all">{member.points_balance}</div>
             <div className="col-span-2 text-right text-sm font-medium">
                 {!isManager && (
                     <>
