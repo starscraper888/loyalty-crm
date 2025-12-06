@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { notifyPointsIssued, notifyRewardRedeemed } from '@/lib/whatsapp/notifications'
 
 export async function lookupCustomer(identifier: string) {
     const supabase = await createClient()
@@ -66,8 +67,30 @@ export async function issuePoints(profileId: string, points: number, description
 
     if (error) return { error: error.message }
 
+    // Fetch updated customer profile for notification
+    const { data: customerProfile } = await supabase
+        .from('profiles')
+        .select('full_name, phone, points_balance')
+        .eq('id', profileId)
+        .single()
+
+    // Send WhatsApp notification (async, don't wait)
+    if (customerProfile?.phone) {
+        notifyPointsIssued(
+            customerProfile.phone,
+            customerProfile.full_name || 'Customer',
+            points,
+            customerProfile.points_balance,
+            description
+        ).catch(err => console.error('Notification failed:', err))
+    }
+
     revalidatePath('/staff/dashboard')
-    return { success: true, message: `Issued ${points} points` }
+    return {
+        success: true,
+        message: `Issued ${points} points`,
+        newBalance: customerProfile?.points_balance
+    }
 }
 
 export async function redeemReward(profileId: string, rewardId: string) {
@@ -133,8 +156,31 @@ export async function redeemReward(profileId: string, rewardId: string) {
         return { error: "Failed to record redemption" }
     }
 
+    // Fetch updated customer profile for notification
+    const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('full_name, phone, points_balance')
+        .eq('id', profileId)
+        .single()
+
+    // Send WhatsApp notification (async, don't wait)
+    if (updatedProfile?.phone) {
+        notifyRewardRedeemed(
+            updatedProfile.phone,
+            updatedProfile.full_name || 'Customer',
+            reward.name,
+            reward.cost,
+            updatedProfile.points_balance,
+            redemption?.redemption_number
+        ).catch(err => console.error('Notification failed:', err))
+    }
+
     revalidatePath('/staff/dashboard')
-    return { success: true, message: `Redeemed ${reward.name} (Ref #${redemption?.redemption_number})` }
+    return {
+        success: true,
+        message: `Redeemed ${reward.name} (Ref #${redemption?.redemption_number})`,
+        newBalance: updatedProfile?.points_balance
+    }
 }
 
 export async function getRewards() {

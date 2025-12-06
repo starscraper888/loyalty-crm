@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { uploadRewardImage, deleteRewardImage } from '@/lib/storage/images'
+import { notifyWelcome } from '@/lib/whatsapp/notifications'
 
 export async function createReward(formData: FormData) {
     const supabase = await createClient()
@@ -231,6 +232,15 @@ export async function createMember(formData: FormData) {
 
     if (profileError) {
         return { error: `Profile Error: ${profileError.message}` }
+    }
+
+    // Send welcome notification to new members (not staff)
+    if (role === 'member' && phone) {
+        notifyWelcome(
+            phone,
+            fullName || 'Member',
+            points
+        ).catch(err => console.error('Welcome notification failed:', err))
     }
 
     revalidatePath('/admin/members')
