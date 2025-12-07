@@ -24,7 +24,7 @@ export default async function BillingPage({ params }: { params: Promise<{ lang: 
                 usage={usage}
                 limits={limits}
                 credits={credits}
-                lang={params.lang}
+                lang={lang}
             />
         </div>
     )
