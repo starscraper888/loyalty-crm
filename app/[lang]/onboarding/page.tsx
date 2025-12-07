@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createTenant } from '../actions'
+import { createTenant } from '@/app/onboarding/actions'
 
 export default function OnboardingPage() {
     const router = useRouter()
@@ -187,8 +187,8 @@ export default function OnboardingPage() {
                             <div
                                 onClick={() => setSelectedTier('starter')}
                                 className={`border-2 rounded-lg p-6 cursor-pointer transition ${selectedTier === 'starter'
-                                        ? 'border-blue-600 bg-blue-50'
-                                        : 'border-gray-200 hover:border-blue-300'
+                                    ? 'border-blue-600 bg-blue-50'
+                                    : 'border-gray-200 hover:border-blue-300'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
@@ -213,8 +213,8 @@ export default function OnboardingPage() {
                             <div
                                 onClick={() => setSelectedTier('pro')}
                                 className={`border-2 rounded-lg p-6 cursor-pointer transition ${selectedTier === 'pro'
-                                        ? 'border-blue-600 bg-blue-50'
-                                        : 'border-gray-200 hover:border-blue-300'
+                                    ? 'border-blue-600 bg-blue-50'
+                                    : 'border-gray-200 hover:border-blue-300'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
@@ -239,8 +239,8 @@ export default function OnboardingPage() {
                             <div
                                 onClick={() => setSelectedTier('enterprise')}
                                 className={`border-2 rounded-lg p-6 cursor-pointer transition ${selectedTier === 'enterprise'
-                                        ? 'border-blue-600 bg-blue-50'
-                                        : 'border-gray-200 hover:border-blue-300'
+                                    ? 'border-blue-600 bg-blue-50'
+                                    : 'border-gray-200 hover:border-blue-300'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
