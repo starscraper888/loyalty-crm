@@ -91,7 +91,14 @@ export async function createTenant(data: {
         // 5. Create subscription record
         const trialDays = data.tier === 'starter' ? 30 : data.tier === 'pro' ? 30 : 30
 
-        const { error: subscriptionError } = await adminSupabase
+        console.log('[Onboarding] Creating subscription record with:', {
+            tenant_id: tenant.id,
+            stripe_customer_id: stripeCustomer.id,
+            tier: data.tier,
+            status: 'trialing'
+        })
+
+        const { data: subscriptionData, error: subscriptionError } = await adminSupabase
             .from('tenant_subscriptions')
             .insert({
                 tenant_id: tenant.id,
@@ -100,11 +107,15 @@ export async function createTenant(data: {
                 status: 'trialing',
                 trial_ends_at: new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000).toISOString(),
             })
+            .select()
+            .single()
 
         if (subscriptionError) {
             console.error('Failed to create subscription record:', subscriptionError)
             return { error: `Failed to create subscription: ${subscriptionError.message}` }
         }
+
+        console.log('[Onboarding] Subscription record created:', subscriptionData)
 
         // 6. Create tenant settings
         const { error: settingsError } = await adminSupabase
