@@ -160,16 +160,17 @@ export async function createOnboardingCheckout(data: {
     tenantId: string
     tier: 'starter' | 'pro' | 'enterprise'
 }) {
-    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     // Get subscription
-    const { data: subscription } = await supabase
+    const { data: subscription, error: subError } = await adminSupabase
         .from('tenant_subscriptions')
         .select('stripe_customer_id')
         .eq('tenant_id', data.tenantId)
         .single()
 
-    if (!subscription?.stripe_customer_id) {
+    if (subError || !subscription?.stripe_customer_id) {
+        console.error('[Checkout] Failed to find subscription:', { error: subError, tenantId: data.tenantId })
         return { error: 'Stripe customer not found' }
     }
 
