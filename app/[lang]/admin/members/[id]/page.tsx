@@ -49,7 +49,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
             if (redemption) {
                 return {
                     ...t,
-                    id: redemption.id, // Use redemption ID for void action
+                    redemption_id: redemption.id, // Store redemption ID separately
                     status: redemption.status || 'completed'
                 }
             }

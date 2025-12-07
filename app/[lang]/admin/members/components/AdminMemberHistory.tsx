@@ -12,6 +12,7 @@ interface Transaction {
     description: string
     status?: string
     reward_name?: string
+    redemption_id?: string
 }
 
 interface AdminMemberHistoryProps {
@@ -71,7 +72,7 @@ export default function AdminMemberHistory({ transactions, memberId }: AdminMemb
                     {transactions.map((t) => {
                         const { dateStr, timeStr } = formatDateTimeGMT8(t.created_at)
                         const isVoided = t.status === 'voided'
-                        const canVoid = t.type === 'redeem' && !isVoided
+                        const canVoid = t.type === 'redeem' && !isVoided && t.redemption_id
 
                         return (
                             <div key={t.id} className={`p-4 grid grid-cols-12 gap-4 items-center ${isVoided ? 'opacity-60' : ''}`}>
@@ -82,20 +83,20 @@ export default function AdminMemberHistory({ transactions, memberId }: AdminMemb
 
                                 <div className="col-span-2">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${isVoided
-                                            ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                                            : t.type === 'earn'
-                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                        ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                                        : t.type === 'earn'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                                         }`}>
                                         {isVoided ? 'VOIDED' : t.type.toUpperCase()}
                                     </span>
                                 </div>
 
                                 <div className={`col-span-2 text-sm font-bold ${isVoided
-                                        ? 'text-gray-500 line-through'
-                                        : t.type === 'earn'
-                                            ? 'text-green-600'
-                                            : 'text-red-600'
+                                    ? 'text-gray-500 line-through'
+                                    : t.type === 'earn'
+                                        ? 'text-green-600'
+                                        : 'text-red-600'
                                     }`}>
                                     {t.type === 'earn' ? '+' : '-'}{Math.abs(t.points)}
                                 </div>
@@ -108,7 +109,7 @@ export default function AdminMemberHistory({ transactions, memberId }: AdminMemb
                                     {canVoid && (
                                         <button
                                             onClick={() => setVoidDialog({
-                                                id: t.id,
+                                                id: t.redemption_id!,
                                                 name: t.reward_name || t.description || 'Reward',
                                                 points: Math.abs(t.points)
                                             })}
