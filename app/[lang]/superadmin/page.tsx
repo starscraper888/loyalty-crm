@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isPlatformAdmin, getPlatformTenantOverview } from '@/lib/platform/admin'
 import Link from 'next/link'
-import { ArrowRight, Users, TrendingUp, CreditCard, Activity } from 'lucide-react'
+import { Users, TrendingUp, CreditCard, Activity } from 'lucide-react'
+import TenantTable from './components/TenantTable'
 
 export default async function SuperadminDashboard() {
     const supabase = await createClient()
@@ -133,61 +134,8 @@ export default async function SuperadminDashboard() {
                     </div>
                 </div>
 
-                {/* Tenants List */}
-                <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-white">All Tenants</h2>
-                        <div className="text-sm text-slate-400">
-                            {tenants.length} total
-                        </div>
-                    </div>
-
-                    <div className="space-y-3">
-                        {tenants.map((tenant) => (
-                            <Link
-                                key={tenant.tenant_id}
-                                href={`/en/superadmin/tenants/${tenant.tenant_id}`}
-                                className="block bg-slate-700/50 hover:bg-slate-700/80 rounded-lg p-4 border border-slate-600 hover:border-slate-500 transition-all group"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">
-                                                {tenant.business_name || 'Unnamed Business'}
-                                            </h3>
-                                            <span className={`text-xs px-2 py-1 rounded-full ${tenant.tier === 'enterprise'
-                                                    ? 'bg-purple-500/20 text-purple-300'
-                                                    : tenant.tier === 'pro'
-                                                        ? 'bg-blue-500/20 text-blue-300'
-                                                        : 'bg-gray-500/20 text-gray-300'
-                                                }`}>
-                                                {tenant.tier?.toUpperCase() || 'NO PLAN'}
-                                            </span>
-                                            <span className={`text-xs px-2 py-1 rounded-full ${tenant.subscription_status === 'active'
-                                                    ? 'bg-green-500/20 text-green-300'
-                                                    : 'bg-red-500/20 text-red-300'
-                                                }`}>
-                                                {tenant.subscription_status || 'inactive'}
-                                            </span>
-                                        </div>
-                                        <div className="flex gap-6 text-sm text-slate-400">
-                                            <span>Owner: {tenant.owner_name || tenant.owner_email || 'Unknown'}</span>
-                                            <span>Members: {tenant.members_count || 0}</span>
-                                            <span>Transactions: {tenant.transactions_count || 0}</span>
-                                        </div>
-                                    </div>
-                                    <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-blue-400 transition-colors" />
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-
-                    {tenants.length === 0 && (
-                        <div className="text-center py-12 text-slate-400">
-                            No tenants found
-                        </div>
-                    )}
-                </div>
+                {/* Tenants Table */}
+                <TenantTable tenants={tenants} />
             </div>
         </div>
     )
