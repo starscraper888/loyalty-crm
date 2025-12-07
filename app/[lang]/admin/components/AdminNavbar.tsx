@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/auth/actions'
 
-export default function AdminNavbar({ email, role }: { email?: string, role?: string }) {
+export default function AdminNavbar({ email, role, isPlatformAdmin }: { email?: string, role?: string, isPlatformAdmin?: boolean }) {
     const pathname = usePathname()
     const lang = pathname.split('/')[1] || 'en'
 
@@ -64,12 +64,14 @@ export default function AdminNavbar({ email, role }: { email?: string, role?: st
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Link
-                            href={`/${lang}/superadmin`}
-                            className="text-sm font-medium text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
-                        >
-                            🔐 Platform Admin
-                        </Link>
+                        {isPlatformAdmin && (
+                            <Link
+                                href={`/${lang}/superadmin`}
+                                className="text-sm font-medium text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+                            >
+                                Platform Admin
+                            </Link>
+                        )}
                         <Link
                             href={`/${lang}/staff/dashboard`}
                             className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"

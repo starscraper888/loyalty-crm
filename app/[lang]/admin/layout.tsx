@@ -31,9 +31,13 @@ export default async function AdminLayout({
         redirect('/en/staff/login')
     }
 
+    // Check if user is platform admin
+    const { isPlatformAdmin } = await import('@/lib/platform/admin')
+    const isSuper = await isPlatformAdmin(user.id)
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <AdminNavbar email={user.email} role={profile?.role} />
+            <AdminNavbar email={user.email} role={profile?.role} isPlatformAdmin={isSuper} />
             {children}
         </div>
     )
