@@ -14,13 +14,17 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
 
     // ... (keep helper functions same) ...
 
+    const [successMessage, setSuccessMessage] = useState('')
+    const [errorMessage, setErrorMessage] = useState('')
+
     const handleOpenPortal = async () => {
         setLoading(true)
+        setErrorMessage('')
         const result = await openBillingPortal()
         if (result.url) {
             window.location.href = result.url
         } else {
-            alert(result.error)
+            setErrorMessage(result.error)
             setLoading(false)
         }
     }
@@ -29,15 +33,19 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
         if (!confirm(`Switch to ${newTier.charAt(0).toUpperCase() + newTier.slice(1)} plan?`)) return
 
         setChangingPlan(true)
+        setErrorMessage('')
+        setSuccessMessage('')
+
         try {
             const result = await changePlan(newTier)
             if (result.error) {
-                alert(result.error)
+                setErrorMessage(result.error)
             } else {
-                window.location.reload()
+                setSuccessMessage(`Successfully switched to ${newTier} plan!`)
+                router.refresh()
             }
         } catch (error) {
-            alert('An unexpected error occurred. Please try again.')
+            setErrorMessage('An unexpected error occurred. Please try again.')
         }
         setChangingPlan(false)
     }
@@ -46,15 +54,18 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
         if (!confirm(`Purchase $${amount} worth of credits?`)) return
 
         setBuyingCredits(true)
+        setErrorMessage('')
+        setSuccessMessage('')
+
         try {
             const result = await buyCredits(amount)
             if (result.url) {
                 window.location.href = result.url
             } else {
-                alert(result.error)
+                setErrorMessage(result.error)
             }
         } catch (error) {
-            alert('Failed to start purchase. Please try again.')
+            setErrorMessage('Failed to start purchase. Please try again.')
         }
         setBuyingCredits(false)
     }
@@ -80,6 +91,20 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                 </Link>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Billing & Subscription</h1>
             </div>
+
+            {/* Notifications */}
+            {successMessage && (
+                <div className="bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 px-4 py-3 rounded-xl flex items-center justify-between">
+                    <p>{successMessage}</p>
+                    <button onClick={() => setSuccessMessage('')} className="text-sm hover:underline">Dismiss</button>
+                </div>
+            )}
+            {errorMessage && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl flex items-center justify-between">
+                    <p>{errorMessage}</p>
+                    <button onClick={() => setErrorMessage('')} className="text-sm hover:underline">Dismiss</button>
+                </div>
+            )}
 
             {/* Current Plan */}
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
