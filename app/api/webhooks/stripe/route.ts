@@ -198,7 +198,8 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
     // Update via subscription handler
     await handleSubscriptionUpdate(supabase, subscription)
 
-    console.log(`Checkout completed for customer ${customerId}`)
+    console.log(`Checkout completed for customer ${session.customer}`)
+}
 }
 
 async function handleCreditPurchase(supabase: any, session: Stripe.Checkout.Session) {
