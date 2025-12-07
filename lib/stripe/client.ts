@@ -24,15 +24,29 @@ export async function createStripeCustomer(params: {
     name: string
     tenantId: string
 }) {
-    const customer = await stripe.customers.create({
-        email: params.email,
-        name: params.name,
-        metadata: {
-            tenant_id: params.tenantId,
-        },
-    })
+    try {
+        console.log('[Stripe] Creating customer:', { email: params.email, name: params.name, tenantId: params.tenantId })
 
-    return customer
+        const customer = await stripe.customers.create({
+            email: params.email,
+            name: params.name,
+            metadata: {
+                tenant_id: params.tenantId,
+            },
+        })
+
+        console.log('[Stripe] Customer created successfully:', customer.id)
+        return customer
+    } catch (error: any) {
+        console.error('[Stripe] Failed to create customer:', {
+            error: error.message,
+            type: error.type,
+            code: error.code,
+            statusCode: error.statusCode,
+            raw: error
+        })
+        throw error
+    }
 }
 
 /**
