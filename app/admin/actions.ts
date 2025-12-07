@@ -372,5 +372,5 @@ export async function voidRedemption(redemptionId: string, reason: string) {
     if (!data.success) return { error: data.error }
     revalidatePath('/admin/members')
     revalidatePath('/member/history')
-    return { success: true, message: Refunded  points for , refundedPoints: data.refunded_points }
+    return { success: true, message: `Refunded ${data.refunded_points} points for ${data.reward_name}`, refundedPoints: data.refunded_points }
 }

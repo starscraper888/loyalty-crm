@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { generateMyOTP } from '@/app/member/actions'
-import QRCodeDisplay from '../../components/QRCodeDisplay'
+import QRCodeDisplay from '../components/QRCodeDisplay'
 
 export default function MemberQRCodePage() {
     const [otp, setOtp] = useState<string | null>(null)
