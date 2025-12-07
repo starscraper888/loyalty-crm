@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { notifyPointsIssued, notifyRewardRedeemed, notifyWelcome } from '@/lib/whatsapp/notifications'
+import { logAudit, AUDIT_ACTIONS } from '@/lib/audit/middleware'
+import { trackUsage } from '@/lib/usage/tracking'
 
 export async function lookupCustomer(identifier: string) {
     const supabase = await createClient()
@@ -67,6 +69,20 @@ export async function issuePoints(profileId: string, points: number, description
         })
 
     if (error) return { error: error.message }
+
+    // Audit log: Track who issued points
+    await logAudit({
+        action: AUDIT_ACTIONS.POINTS_ISSUE,
+        tenantId: staffProfile.tenant_id,
+        actorId: user.id,
+        details: { profileId, points, description }
+    })
+
+    // Usage tracking: Increment transaction count
+    await trackUsage({
+        tenantId: staffProfile.tenant_id,
+        increment: { transactions_count: 1 }
+    })
 
     // Fetch updated customer profile for notification
     const { data: customerProfile } = await supabase
@@ -156,6 +172,20 @@ export async function redeemReward(profileId: string, rewardId: string) {
         console.error("Redemption record failed", redemptionError)
         return { error: "Failed to record redemption" }
     }
+
+    // Audit log: Track who redeemed the reward
+    await logAudit({
+        action: AUDIT_ACTIONS.POINTS_REDEEM,
+        tenantId: staffProfile.tenant_id,
+        actorId: user.id,
+        details: { profileId, rewardId, rewardName: reward.name, cost: reward.cost }
+    })
+
+    // Usage tracking: Increment transaction count
+    await trackUsage({
+        tenantId: staffProfile.tenant_id,
+        increment: { transactions_count: 1 }
+    })
 
     // Fetch updated customer profile for notification
     const { data: updatedProfile } = await supabase
