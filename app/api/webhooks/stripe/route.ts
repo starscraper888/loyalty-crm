@@ -102,10 +102,10 @@ async function handleSubscriptionUpdate(supabase: any, subscription: Stripe.Subs
             stripe_subscription_id: subscription.id,
             tier,
             status: subscription.status,
-            current_period_start: new Date(subscription.currentPeriodStart * 1000).toISOString(),
-            current_period_end: new Date(subscription.currentPeriodEnd * 1000).toISOString(),
-            trial_ends_at: subscription.trialEnd
-                ? new Date(subscription.trialEnd * 1000).toISOString()
+            current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            trial_ends_at: (subscription as any).trial_end
+                ? new Date((subscription as any).trial_end * 1000).toISOString()
                 : null,
         })
         .eq('tenant_id', tenantSub.tenant_id)
