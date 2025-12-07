@@ -126,14 +126,14 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h2 className="text-xl font-bold text-white capitalize">{subscription.tier} Plan</h2>
+                        <h2 className="text-xl font-bold text-white capitalize">{currentSubscription.tier} Plan</h2>
                         <p className="text-slate-400 mt-1">
-                            Status: <span className={`font-medium ${subscription.status === 'active' ? 'text-green-400' :
-                                subscription.status === 'trialing' ? 'text-blue-400' :
-                                    subscription.status === 'past_due' ? 'text-red-400' :
+                            Status: <span className={`font-medium ${currentSubscription.status === 'active' ? 'text-green-400' :
+                                currentSubscription.status === 'trialing' ? 'text-blue-400' :
+                                    currentSubscription.status === 'past_due' ? 'text-red-400' :
                                         'text-slate-400'
                                 }`}>
-                                {subscription.status === 'trialing' ? 'Free Trial' : subscription.status}
+                                {currentSubscription.status === 'trialing' ? 'Free Trial' : currentSubscription.status}
                             </span>
                         </p>
                         {currentSubscription.trial_ends_at && currentSubscription.status === 'trialing' && (
@@ -262,7 +262,8 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                 <h3 className="text-lg font-bold text-white mb-6">Available Plans</h3>
                 <div className="grid md:grid-cols-3 gap-6">
                     {/* Starter */}
-                    <div className={`border rounded-xl p-6 transition-colors ${subscription.tier === 'starter' ? 'border-blue-500 bg-blue-500/10' : 'border-slate-600 bg-slate-900/50 hover:border-blue-500/50'}`}>
+                    {/* Starter */}
+                    <div className={`border rounded-xl p-6 transition-colors ${currentSubscription.tier === 'starter' ? 'border-blue-500 bg-blue-500/10' : 'border-slate-600 bg-slate-900/50 hover:border-blue-500/50'}`}>
                         <h4 className="font-bold text-lg text-white">Starter</h4>
                         <p className="text-3xl font-bold mt-2 text-blue-400">$29<span className="text-sm font-normal text-slate-400">/mo</span></p>
                         <ul className="mt-4 space-y-2 text-sm text-slate-400">
@@ -271,18 +272,18 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                         </ul>
                         <button
                             onClick={() => handleChangePlan('starter')}
-                            disabled={changingPlan || subscription.tier === 'starter'}
-                            className={`w-full mt-6 border px-4 py-2 rounded-lg transition disabled:opacity-50 ${subscription.tier === 'starter'
-                                ? 'bg-blue-600 text-white border-blue-600'
+                            disabled={changingPlan || currentSubscription.tier === 'starter'}
+                            className={`w-full mt-6 border px-4 py-2 rounded-lg transition disabled:opacity-50 ${currentSubscription.tier === 'starter'
+                                ? 'bg-blue-600 text-white border-blue-600 opacity-50 cursor-default'
                                 : 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10'
                                 }`}
                         >
-                            {subscription.tier === 'starter' ? 'Current Plan' : (changingPlan ? 'Processing...' : 'Downgrade')}
+                            {currentSubscription.tier === 'starter' ? 'Current' : (changingPlan ? 'Processing...' : 'Select')}
                         </button>
                     </div>
 
                     {/* Pro */}
-                    <div className={`border rounded-xl p-6 relative shadow-lg ${subscription.tier === 'pro' ? 'border-blue-500 bg-blue-500/10 shadow-blue-900/20' : 'border-blue-500 bg-blue-900/10 shadow-blue-900/20'}`}>
+                    <div className={`border rounded-xl p-6 relative shadow-lg ${currentSubscription.tier === 'pro' ? 'border-blue-500 bg-blue-500/10 shadow-blue-900/20' : 'border-blue-500 bg-blue-900/10 shadow-blue-900/20'}`}>
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                             POPULAR
                         </div>
@@ -295,21 +296,21 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                         </ul>
                         <button
                             onClick={() => handleChangePlan('pro')}
-                            disabled={changingPlan || subscription.tier === 'pro'}
-                            className={`w-full mt-6 px-4 py-2 rounded-lg transition disabled:opacity-50 shadow-lg ${subscription.tier === 'pro'
-                                ? 'bg-slate-700 text-white'
+                            disabled={changingPlan || currentSubscription.tier === 'pro'}
+                            className={`w-full mt-6 px-4 py-2 rounded-lg transition disabled:opacity-50 shadow-lg ${currentSubscription.tier === 'pro'
+                                ? 'bg-slate-700 text-white opacity-50 cursor-default'
                                 : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20'
                                 }`}
                         >
-                            {subscription.tier === 'pro'
-                                ? 'Current Plan'
-                                : (changingPlan ? 'Processing...' : (subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade'))
+                            {currentSubscription.tier === 'pro'
+                                ? 'Current'
+                                : (changingPlan ? 'Processing...' : 'Select')
                             }
                         </button>
                     </div>
 
                     {/* Enterprise */}
-                    <div className={`border rounded-xl p-6 transition-colors ${subscription.tier === 'enterprise' ? 'border-purple-500 bg-purple-500/10' : 'border-slate-600 bg-slate-900/50 hover:border-purple-500/50'}`}>
+                    <div className={`border rounded-xl p-6 transition-colors ${currentSubscription.tier === 'enterprise' ? 'border-purple-500 bg-purple-500/10' : 'border-slate-600 bg-slate-900/50 hover:border-purple-500/50'}`}>
                         <h4 className="font-bold text-lg text-white">Enterprise</h4>
                         <p className="text-3xl font-bold mt-2 text-purple-400">$299<span className="text-sm font-normal text-slate-400">/mo</span></p>
                         <ul className="mt-4 space-y-2 text-sm text-slate-400">
@@ -319,13 +320,13 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                         </ul>
                         <button
                             onClick={() => handleChangePlan('enterprise')}
-                            disabled={changingPlan || subscription.tier === 'enterprise'}
-                            className={`w-full mt-6 px-4 py-2 rounded-lg transition disabled:opacity-50 ${subscription.tier === 'enterprise'
-                                ? 'bg-purple-600 text-white'
+                            disabled={changingPlan || currentSubscription.tier === 'enterprise'}
+                            className={`w-full mt-6 px-4 py-2 rounded-lg transition disabled:opacity-50 ${currentSubscription.tier === 'enterprise'
+                                ? 'bg-purple-600 text-white opacity-50 cursor-default'
                                 : 'bg-slate-700 text-white hover:bg-slate-600'
                                 }`}
                         >
-                            {subscription.tier === 'enterprise' ? 'Current Plan' : (changingPlan ? 'Processing...' : 'Upgrade')}
+                            {currentSubscription.tier === 'enterprise' ? 'Current' : (changingPlan ? 'Processing...' : 'Select')}
                         </button>
                     </div>
                 </div>
