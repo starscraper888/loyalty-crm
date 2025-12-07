@@ -2,14 +2,17 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { openBillingPortal, changePlan, buyCredits } from '@/app/settings/actions'
 
-export default function BillingPortalClient({ subscription, usage, limits, credits }: any) {
+export default function BillingPortalClient({ subscription, usage, limits, credits, lang }: any) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [changingPlan, setChangingPlan] = useState(false)
     const [buyingCredits, setBuyingCredits] = useState(false)
+
+    // ... (keep helper functions same) ...
 
     const handleOpenPortal = async () => {
         setLoading(true)
@@ -26,11 +29,15 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
         if (!confirm(`Switch to ${newTier.charAt(0).toUpperCase() + newTier.slice(1)} plan?`)) return
 
         setChangingPlan(true)
-        const result = await changePlan(newTier)
-        if (result.error) {
-            alert(result.error)
-        } else {
-            window.location.reload()
+        try {
+            const result = await changePlan(newTier)
+            if (result.error) {
+                alert(result.error)
+            } else {
+                window.location.reload()
+            }
+        } catch (error) {
+            alert('An unexpected error occurred. Please try again.')
         }
         setChangingPlan(false)
     }
@@ -39,13 +46,17 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
         if (!confirm(`Purchase $${amount} worth of credits?`)) return
 
         setBuyingCredits(true)
-        const result = await buyCredits(amount)
-        if (result.url) {
-            window.location.href = result.url
-        } else {
-            alert(result.error)
-            setBuyingCredits(false)
+        try {
+            const result = await buyCredits(amount)
+            if (result.url) {
+                window.location.href = result.url
+            } else {
+                alert(result.error)
+            }
+        } catch (error) {
+            alert('Failed to start purchase. Please try again.')
         }
+        setBuyingCredits(false)
     }
 
     const getUsagePercentage = (current: number, max: number) => {
@@ -61,13 +72,12 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
         <div className="space-y-6">
             {/* Header / Back Button */}
             <div className="flex items-center gap-4">
-                <button
-                    onClick={() => router.back()}
+                <Link
+                    href={`/${lang}/admin/dashboard`}
                     className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-                    aria-label="Go back"
                 >
                     <ArrowLeft className="w-6 h-6 text-slate-500 dark:text-slate-400" />
-                </button>
+                </Link>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Billing & Subscription</h1>
             </div>
 
@@ -97,7 +107,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                             disabled={loading}
                             className="bg-blue-600/10 text-blue-400 border border-blue-600/20 px-4 py-2 rounded-lg hover:bg-blue-600/20 transition disabled:opacity-50 text-sm font-medium"
                         >
-                            {loading ? 'Loading...' : 'Manage Subscription'}
+                            {loading ? 'Opening Portal...' : 'Manage Subscription'}
                         </button>
                     )}
                 </div>
@@ -179,21 +189,21 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                                 disabled={buyingCredits}
                                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-500 transition disabled:opacity-50 shadow-lg shadow-green-600/20"
                             >
-                                + $10
+                                {buyingCredits ? '...' : '+ $10'}
                             </button>
                             <button
                                 onClick={() => handleBuyCredits(50)}
                                 disabled={buyingCredits}
                                 className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition disabled:opacity-50"
                             >
-                                + $50
+                                {buyingCredits ? '...' : '+ $50'}
                             </button>
                             <button
                                 onClick={() => handleBuyCredits(100)}
                                 disabled={buyingCredits}
                                 className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition disabled:opacity-50"
                             >
-                                + $100
+                                {buyingCredits ? '...' : '+ $100'}
                             </button>
                         </div>
                     </div>
@@ -225,7 +235,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                                     disabled={changingPlan}
                                     className="w-full mt-6 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-500/10 transition disabled:opacity-50"
                                 >
-                                    {subscription.tier === 'pro' || subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade'}
+                                    {changingPlan ? 'Processing...' : (subscription.tier === 'pro' || subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade')}
                                 </button>
                             </div>
                         )}
@@ -248,7 +258,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                                     disabled={changingPlan}
                                     className="w-full mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition disabled:opacity-50 shadow-lg shadow-blue-600/20"
                                 >
-                                    {subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade'}
+                                    {changingPlan ? 'Processing...' : (subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade')}
                                 </button>
                             </div>
                         )}
@@ -268,7 +278,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                                     disabled={changingPlan}
                                     className="w-full mt-6 bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition disabled:opacity-50"
                                 >
-                                    Upgrade
+                                    {changingPlan ? 'Processing...' : 'Upgrade'}
                                 </button>
                             </div>
                         )}

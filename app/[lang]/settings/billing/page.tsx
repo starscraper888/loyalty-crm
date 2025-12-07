@@ -2,7 +2,7 @@ import { getSubscriptionDetails, openBillingPortal, changePlan } from '@/app/set
 import { redirect } from 'next/navigation'
 import BillingPortalClient from './BillingPortalClient'
 
-export default async function BillingPage() {
+export default async function BillingPage({ params }: { params: { lang: string } }) {
     const result = await getSubscriptionDetails()
 
     if (result.error) {
@@ -23,6 +23,7 @@ export default async function BillingPage() {
                 usage={usage}
                 limits={limits}
                 credits={credits}
+                lang={params.lang}
             />
         </div>
     )
