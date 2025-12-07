@@ -24,7 +24,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
         if (result.url) {
             window.location.href = result.url
         } else {
-            setErrorMessage(result.error)
+            setErrorMessage(result.error || 'Failed to open billing portal')
             setLoading(false)
         }
     }
@@ -39,7 +39,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
         try {
             const result = await changePlan(newTier)
             if (result.error) {
-                setErrorMessage(result.error)
+                setErrorMessage(result.error || 'Failed to update plan')
             } else {
                 setSuccessMessage(`Successfully switched to ${newTier} plan!`)
                 router.refresh()
@@ -62,7 +62,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
             if (result.url) {
                 window.location.href = result.url
             } else {
-                setErrorMessage(result.error)
+                setErrorMessage(result.error || 'Failed to purchase credits')
             }
         } catch (error) {
             setErrorMessage('Failed to start purchase. Please try again.')
