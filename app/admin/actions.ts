@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { uploadRewardImage, deleteRewardImage } from '@/lib/storage/images'
 import { notifyWelcome } from '@/lib/whatsapp/notifications'
+import { logAudit, AUDIT_ACTIONS } from '@/lib/audit/middleware'
+import { trackUsage } from '@/lib/usage/tracking'
 
 export async function createReward(formData: FormData) {
     const supabase = await createClient()
@@ -243,6 +245,25 @@ export async function createMember(formData: FormData) {
         ).catch(err => console.error('Welcome notification failed:', err))
     }
 
+    // Get current user for audit log
+    const { data: { user } } = await userSupabase.auth.getUser()
+
+    // Audit log: Track who created the member
+    if (user) {
+        await logAudit({
+            action: AUDIT_ACTIONS.MEMBER_CREATE,
+            tenantId: tenantId,
+            actorId: user.id,
+            details: { phone, email, fullName, role }
+        })
+    }
+
+    // Usage tracking: Increment member count
+    await trackUsage({
+        tenantId: tenantId,
+        increment: { members_count: 1 }
+    })
+
     revalidatePath('/admin/members')
     return { success: true }
 }
@@ -339,17 +360,53 @@ export async function updateMember(id: string, formData: FormData) {
         return { error: error.message }
     }
 
+    // Audit log: Track who updated the member
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    if (currentUser && currentProfile) {
+        await logAudit({
+            action: AUDIT_ACTIONS.MEMBER_EDIT,
+            tenantId: currentProfile.tenant_id,
+            actorId: currentUser.id,
+            details: { memberId: id, updates: { fullName, phone, role } }
+        })
+    }
+
     revalidatePath('/admin/members')
     return { success: true }
 }
 
 export async function deleteMember(id: string) {
     const supabase = createAdminClient()
+    const userSupabase = await createClient()
+
+    // Get member info before deletion for audit log
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, tenant_id')
+        .eq('id', id)
+        .single()
 
     const { error } = await supabase.auth.admin.deleteUser(id)
 
     if (error) {
         return { error: error.message }
+    }
+
+    // Audit log: Track who deleted the member
+    const { data: { user: currentUser } } = await userSupabase.auth.getUser()
+    if (currentUser && profile) {
+        await logAudit({
+            action: AUDIT_ACTIONS.MEMBER_DELETE,
+            tenantId: profile.tenant_id,
+            actorId: currentUser.id,
+            details: { memberId: id, memberName: profile.full_name }
+        })
+
+        // Usage tracking: Decrement member count
+        await trackUsage({
+            tenantId: profile.tenant_id,
+            increment: { members_count: -1 }
+        })
     }
 
     revalidatePath('/admin/members')
