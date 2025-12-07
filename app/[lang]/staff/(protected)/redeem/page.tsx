@@ -8,10 +8,17 @@ export default function RedeemPage() {
     const [profile, setProfile] = useState<any>(null)
     const [rewards, setRewards] = useState<any[]>([])
     const [message, setMessage] = useState('')
+    const [searchQuery, setSearchQuery] = useState('')
 
     useEffect(() => {
         getRewards().then(setRewards)
     }, [])
+
+    // Filter rewards based on search query
+    const filteredRewards = rewards.filter(reward =>
+        reward.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        reward.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
     async function handleLookup(formData: FormData) {
         const identifier = formData.get('identifier') as string
@@ -38,6 +45,7 @@ export default function RedeemPage() {
             setMessage(result.message || 'Success')
             setStep('lookup')
             setProfile(null)
+            setSearchQuery('') // Clear search after redemption
         }
     }
 
@@ -86,6 +94,23 @@ export default function RedeemPage() {
                             <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">Current Balance: {profile.points_balance} pts</p>
                         </div>
 
+                        {/* Search Bar */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search Rewards</label>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="🔍 Type reward name..."
+                                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            />
+                            {searchQuery && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Found {filteredRewards.length} reward(s)
+                                </p>
+                            )}
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Reward</label>
                             <select
@@ -94,7 +119,7 @@ export default function RedeemPage() {
                                 className="w-full px-4 py-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">-- Choose a Reward --</option>
-                                {rewards.map(reward => (
+                                {filteredRewards.map(reward => (
                                     <option
                                         key={reward.id}
                                         value={reward.id}
