@@ -21,7 +21,7 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                                 href={`/${lang}/staff/login`}
                                 className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
                             >
-                                {dict.login}
+                                Business Login
                             </Link>
                             <Link
                                 href="/onboarding"
@@ -74,14 +74,14 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                             href={`/${lang}/staff/login`}
                             className="w-full sm:w-auto px-8 py-4 text-lg font-medium bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl transition-all hover:-translate-y-1"
                         >
-                            Staff Login
+                            Business Login
                         </Link>
                     </div>
 
                     <div className="mt-12 flex items-center justify-center gap-8 text-sm text-slate-500">
                         <div className="flex items-center gap-2">
                             <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                            14-day free trial
+                            30-day free trial
                         </div>
                         <div className="flex items-center gap-2">
                             <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
