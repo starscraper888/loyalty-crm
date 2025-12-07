@@ -1,31 +1,20 @@
-'use server'
-
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { revalidatePath } from 'next/cache'
-import { notifyPointsIssued, notifyRewardRedeemed, notifyWelcome } from '@/lib/whatsapp/notifications'
-
-export async function lookupCustomer(identifier: string) {
-    const supabase = await createClient()
-
-    // Check if it's an OTP (6 digits)
-    if (/^\d{6}$/.test(identifier)) {
-        const { data, error } = await supabase.rpc('verify_otp', { p_otp: identifier })
-        if (error) return { error: error.message }
-        if (!data) return { error: "Invalid or expired OTP" }
-        return { success: true, profile: data }
-    }
-
-    // Assume it's a phone number
-    // Normalize phone? Assuming input matches DB format for now.
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, phone, points_balance, tenant_id')
-        .eq('phone', identifier)
-        .single()
-
-    if (error || !data) return { error: "Customer not found" }
+if (/^\d{6}$/.test(identifier)) {
+    const { data, error } = await supabase.rpc('verify_otp', { p_otp: identifier })
+    if (error) return { error: error.message }
+    if (!data) return { error: "Invalid or expired OTP" }
     return { success: true, profile: data }
+}
+
+// Assume it's a phone number
+// Normalize phone? Assuming input matches DB format for now.
+const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, phone, points_balance, tenant_id')
+    .eq('phone', identifier)
+    .single()
+
+if (error || !data) return { error: "Customer not found" }
+return { success: true, profile: data }
 }
 
 export async function issuePoints(profileId: string, points: number, description: string) {
@@ -67,6 +56,20 @@ export async function issuePoints(profileId: string, points: number, description
         })
 
     if (error) return { error: error.message }
+
+    // Audit log: Track who issued points
+    await logAudit({
+        action: AUDIT_ACTIONS.POINTS_ISSUE,
+        tenantId: staffProfile.tenant_id,
+        actorId: user.id,
+        details: { profileId, points, description }
+    })
+
+    // Usage tracking: Increment transaction count  
+    await trackUsage({
+        tenantId: staffProfile.tenant_id,
+        increment: { transactions_count: 1 }
+    })
 
     // Fetch updated customer profile for notification
     const { data: customerProfile } = await supabase

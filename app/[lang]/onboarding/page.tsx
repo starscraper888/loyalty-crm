@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { createTenant } from '@/app/onboarding/actions'
 import { createClient } from '@/lib/supabase/client'
 
@@ -12,19 +14,27 @@ export default function OnboardingPage() {
     const [error, setError] = useState('')
 
     // Form data
+    const [ownerEmail, setOwnerEmail] = useState('')
     const [businessName, setBusinessName] = useState('')
     const [ownerName, setOwnerName] = useState('')
-    const [ownerEmail, setOwnerEmail] = useState('')
     const [ownerPassword, setOwnerPassword] = useState('')
     const [selectedTier, setSelectedTier] = useState<'starter' | 'pro' | 'enterprise'>('starter')
 
     const handleNext = () => {
         setError('')
-        if (step === 1 && !businessName.trim()) {
-            setError('Business name is required')
+
+        // Step 1: Email validation
+        if (step === 1 && !ownerEmail.trim()) {
+            setError('Email is required')
             return
         }
-        if (step === 2 && (!ownerName.trim() || !ownerEmail.trim() || !ownerPassword.trim())) {
+        if (step === 1 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
+            setError('Please enter a valid email address')
+            return
+        }
+
+        // Step 2: Business details validation
+        if (step === 2 && (!businessName.trim() || !ownerName.trim() || !ownerPassword.trim())) {
             setError('All fields are required')
             return
         }
@@ -32,7 +42,15 @@ export default function OnboardingPage() {
             setError('Password must be at least 8 characters')
             return
         }
+
         setStep(step + 1)
+    }
+
+    const handleBack = () => {
+        if (step > 1) {
+            setStep(step - 1)
+            setError('')
+        }
     }
 
     const handleSubmit = async () => {
@@ -78,14 +96,35 @@ export default function OnboardingPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
             <div className="bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-2xl max-w-2xl w-full p-8 border border-slate-700">
+                {/* Back Button */}
+                <div className="mb-6">
+                    {step === 1 ? (
+                        <Link
+                            href="/en"
+                            className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            <span className="text-sm font-medium">Back to Home</span>
+                        </Link>
+                    ) : (
+                        <button
+                            onClick={handleBack}
+                            className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            <span className="text-sm font-medium">Back</span>
+                        </button>
+                    )}
+                </div>
+
                 {/* Progress Bar */}
                 <div className="mb-8">
                     <div className="flex justify-between mb-2">
                         <span className={`text-sm font-medium ${step >= 1 ? 'text-blue-400' : 'text-slate-500'}`}>
-                            Business Info
+                            Email
                         </span>
                         <span className={`text-sm font-medium ${step >= 2 ? 'text-blue-400' : 'text-slate-500'}`}>
-                            Owner Account
+                            Business Details
                         </span>
                         <span className={`text-sm font-medium ${step >= 3 ? 'text-blue-400' : 'text-slate-500'}`}>
                             Choose Plan
@@ -99,27 +138,30 @@ export default function OnboardingPage() {
                     </div>
                 </div>
 
-                {/* Step 1: Business Info */}
+                {/* Step 1: Email Capture */}
                 {step === 1 && (
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-3xl font-bold text-white">
-                                Welcome! Let's get started
+                                Start Your Free Trial
                             </h2>
-                            <p className="text-slate-400 mt-2">Tell us about your business</p>
+                            <p className="text-slate-400 mt-2">Enter your email to get started</p>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-2">
-                                Business Name
+                                Email Address
                             </label>
                             <input
-                                type="text"
-                                value={businessName}
-                                onChange={(e) => setBusinessName(e.target.value)}
+                                type="email"
+                                value={ownerEmail}
+                                onChange={(e) => setOwnerEmail(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleNext()}
                                 className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder="e.g., Acme Coffee Shop"
+                                placeholder="you@company.com"
+                                autoFocus
                             />
+                            <p className="text-slate-500 text-xs mt-2">We'll use this for your account and updates</p>
                         </div>
 
                         {error && <div className="text-red-400 text-sm font-medium bg-red-900/20 px-4 py-2 rounded-lg border border-red-800">{error}</div>}
@@ -133,35 +175,38 @@ export default function OnboardingPage() {
                     </div>
                 )}
 
-                {/* Step 2: Owner Account */}
+                {/* Step 2: Business Details */}
                 {step === 2 && (
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-3xl font-bold text-white">
-                                Create your account
+                                Tell us about your business
                             </h2>
-                            <p className="text-slate-400 mt-2">You'll be the owner of {businessName}</p>
+                            <p className="text-slate-400 mt-2">Complete your account setup</p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Business Name
+                            </label>
+                            <input
+                                type="text"
+                                value={businessName}
+                                onChange={(e) => setBusinessName(e.target.value)}
+                                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="e.g., Acme Coffee Shop"
+                                autoFocus
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">Your Full Name</label>
                             <input
                                 type="text"
                                 value={ownerName}
                                 onChange={(e) => setOwnerName(e.target.value)}
                                 className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                 placeholder="John Doe"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
-                            <input
-                                type="email"
-                                value={ownerEmail}
-                                onChange={(e) => setOwnerEmail(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder="john@example.com"
                             />
                         </div>
 
@@ -178,20 +223,12 @@ export default function OnboardingPage() {
 
                         {error && <div className="text-red-400 text-sm font-medium bg-red-900/20 px-4 py-2 rounded-lg border border-red-800">{error}</div>}
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setStep(1)}
-                                className="flex-1 border-2 border-slate-600 text-slate-300 py-3 rounded-lg font-medium hover:bg-slate-700/50 transition-all"
-                            >
-                                Back
-                            </button>
-                            <button
-                                onClick={handleNext}
-                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-blue-500/50"
-                            >
-                                Continue
-                            </button>
-                        </div>
+                        <button
+                            onClick={handleNext}
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-0.5"
+                        >
+                            Continue
+                        </button>
                     </div>
                 )}
 
@@ -202,90 +239,86 @@ export default function OnboardingPage() {
                             <h2 className="text-3xl font-bold text-white">
                                 Choose your plan
                             </h2>
-                            <p className="text-slate-400 mt-2">30-day free trial • Cancel anytime</p>
+                            <p className="text-slate-400 mt-2">Start with a 30-day free trial</p>
                         </div>
 
-                        <div className="grid gap-4">
-                            {/* Starter */}
+                        <div className="space-y-4">
+                            {/* Starter Plan */}
                             <div
                                 onClick={() => setSelectedTier('starter')}
-                                className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${selectedTier === 'starter'
-                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
-                                    : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
+                                className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${selectedTier === 'starter'
+                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-900/20'
+                                    : 'border-slate-600 bg-slate-700/30 hover:border-slate-500'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white">Starter</h3>
+                                        <h3 className="text-xl font-bold text-white">Starter</h3>
                                         <p className="text-slate-400 text-sm mt-1">Perfect for small businesses</p>
-                                        <p className="text-2xl font-bold mt-3 text-blue-400">
-                                            $29<span className="text-sm font-normal text-slate-400">/month</span>
-                                        </p>
-                                        <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                                            <li>✓ 1,000 members</li>
-                                            <li>✓ 5,000 transactions/month</li>
-                                            <li>✓ WhatsApp (pay-as-you-go)</li>
-                                        </ul>
+                                        <div className="mt-3 space-y-1 text-sm text-slate-300">
+                                            <p>✓ 1,000 members</p>
+                                            <p>✓ 5,000 transactions/month</p>
+                                            <p>✓ Basic analytics</p>
+                                        </div>
                                     </div>
-                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedTier === 'starter' ? 'border-blue-500 bg-blue-500' : 'border-slate-600'
-                                        }`}>
-                                        {selectedTier === 'starter' && <div className="text-white text-xs">✓</div>}
+                                    <div className="text-right">
+                                        <p className="text-3xl font-bold text-white">$29</p>
+                                        <p className="text-slate-400 text-sm">/month</p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Pro */}
+                            {/* Pro Plan */}
                             <div
                                 onClick={() => setSelectedTier('pro')}
-                                className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${selectedTier === 'pro'
-                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
-                                    : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
+                                className={`p-6 rounded-xl border-2 cursor-pointer transition-all relative ${selectedTier === 'pro'
+                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-900/20'
+                                    : 'border-slate-600 bg-slate-700/30 hover:border-slate-500'
                                     }`}
                             >
+                                <div className="absolute -top-3 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                                    POPULAR
+                                </div>
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white">Pro</h3>
+                                        <h3 className="text-xl font-bold text-white">Pro</h3>
                                         <p className="text-slate-400 text-sm mt-1">For growing businesses</p>
-                                        <p className="text-2xl font-bold mt-3 text-blue-400">
-                                            $99<span className="text-sm font-normal text-slate-400">/month</span>
-                                        </p>
-                                        <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                                            <li>✓ 10,000 members</li>
-                                            <li>✓ 50,000 transactions/month</li>
-                                            <li>✓ Advanced analytics + API</li>
-                                        </ul>
+                                        <div className="mt-3 space-y-1 text-sm text-slate-300">
+                                            <p>✓ 10,000 members</p>
+                                            <p>✓ 50,000 transactions/month</p>
+                                            <p>✓ Advanced analytics</p>
+                                            <p>✓ Priority support</p>
+                                        </div>
                                     </div>
-                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedTier === 'pro' ? 'border-blue-500 bg-blue-500' : 'border-slate-600'
-                                        }`}>
-                                        {selectedTier === 'pro' && <div className="text-white text-xs">✓</div>}
+                                    <div className="text-right">
+                                        <p className="text-3xl font-bold text-white">$99</p>
+                                        <p className="text-slate-400 text-sm">/month</p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Enterprise */}
+                            {/* Enterprise Plan */}
                             <div
                                 onClick={() => setSelectedTier('enterprise')}
-                                className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${selectedTier === 'enterprise'
-                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
-                                    : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
+                                className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${selectedTier === 'enterprise'
+                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-900/20'
+                                    : 'border-slate-600 bg-slate-700/30 hover:border-slate-500'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white">Enterprise</h3>
-                                        <p className="text-slate-400 text-sm mt-1">Unlimited everything</p>
-                                        <p className="text-2xl font-bold mt-3 text-blue-400">
-                                            $299<span className="text-sm font-normal text-slate-400">/month</span>
-                                        </p>
-                                        <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                                            <li>✓ Unlimited members</li>
-                                            <li>✓ White-label + Custom domain</li>
-                                            <li>✓ Dedicated support</li>
-                                        </ul>
+                                        <h3 className="text-xl font-bold text-white">Enterprise</h3>
+                                        <p className="text-slate-400 text-sm mt-1">For large organizations</p>
+                                        <div className="mt-3 space-y-1 text-sm text-slate-300">
+                                            <p>✓ Unlimited members</p>
+                                            <p>✓ Unlimited transactions</p>
+                                            <p>✓ White-label branding</p>
+                                            <p>✓ Dedicated support</p>
+                                        </div>
                                     </div>
-                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedTier === 'enterprise' ? 'border-blue-500 bg-blue-500' : 'border-slate-600'
-                                        }`}>
-                                        {selectedTier === 'enterprise' && <div className="text-white text-xs">✓</div>}
+                                    <div className="text-right">
+                                        <p className="text-3xl font-bold text-white">$299</p>
+                                        <p className="text-slate-400 text-sm">/month</p>
                                     </div>
                                 </div>
                             </div>
@@ -293,22 +326,17 @@ export default function OnboardingPage() {
 
                         {error && <div className="text-red-400 text-sm font-medium bg-red-900/20 px-4 py-2 rounded-lg border border-red-800">{error}</div>}
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setStep(2)}
-                                disabled={loading}
-                                className="flex-1 border-2 border-slate-600 text-slate-300 py-3 rounded-lg font-medium hover:bg-slate-700/50 transition-all disabled:opacity-50"
-                            >
-                                Back
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={loading}
-                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-blue-500/50 disabled:opacity-50"
-                            >
-                                {loading ? 'Creating account...' : 'Start Free Trial'}
-                            </button>
-                        </div>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading ? 'Creating Account...' : 'Start Free Trial'}
+                        </button>
+
+                        <p className="text-center text-slate-500 text-sm">
+                            30-day free trial • No credit card required • Cancel anytime
+                        </p>
                     </div>
                 )}
             </div>
