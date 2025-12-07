@@ -93,6 +93,7 @@ export async function createCheckoutSession(params: {
         subscription_data: {
             trial_period_days: params.trialDays || 30,
         },
+        payment_method_collection: 'if_required',
         success_url: params.successUrl,
         cancel_url: params.cancelUrl,
     })

@@ -160,22 +160,16 @@ export async function createOnboardingCheckout(data: {
     tenantId: string
     tier: 'starter' | 'pro' | 'enterprise'
 }) {
-    // Use admin client because user might not be authenticated yet during onboarding
-    const adminSupabase = createAdminClient()
-
-    console.log('[Checkout] Looking up subscription for tenant:', data.tenantId)
+    const supabase = await createClient()
 
     // Get subscription
-    const { data: subscription, error: queryError } = await adminSupabase
+    const { data: subscription } = await supabase
         .from('tenant_subscriptions')
         .select('stripe_customer_id')
         .eq('tenant_id', data.tenantId)
         .single()
 
-    console.log('[Checkout] Query result:', { subscription, error: queryError })
-
-    if (queryError || !subscription?.stripe_customer_id) {
-        console.error('[Checkout] Failed to find subscription:', queryError)
+    if (!subscription?.stripe_customer_id) {
         return { error: 'Stripe customer not found' }
     }
 
