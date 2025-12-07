@@ -40,17 +40,11 @@ export default async function SuperadminDashboard() {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
             {/* Header */}
             <div className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <div className="max-w-7xl mx-auto px-6 py-4">
                     <div>
                         <h1 className="text-2xl font-bold text-white">Platform Admin</h1>
                         <p className="text-slate-400 text-sm">Superadmin Dashboard</p>
                     </div>
-                    <Link
-                        href="/en/admin/dashboard"
-                        className="text-sm text-slate-400 hover:text-white transition-colors"
-                    >
-                        Back to Tenant Dashboard
-                    </Link>
                 </div>
             </div>
 

@@ -96,12 +96,13 @@ export async function removePlatformAdmin(userId: string) {
 }
 
 /**
- * Get platform-level tenant overview
+ * Get platform-level tenant overview with accurate member/transaction counts
  */
 export async function getPlatformTenantOverview() {
     const adminClient = createAdminClient()
 
-    const { data, error } = await adminClient
+    // Get basic tenant + subscription data from the view
+    const { data: tenants, error } = await adminClient
         .from('platform_tenant_overview')
         .select('*')
 
@@ -110,7 +111,35 @@ export async function getPlatformTenantOverview() {
         return []
     }
 
-    return data || []
+    if (!tenants || tenants.length === 0) {
+        return []
+    }
+
+    // For each tenant, get accurate member and transaction counts
+    const enrichedTenants = await Promise.all(
+        tenants.map(async (tenant) => {
+            // Get total member count for this tenant
+            const { count: memberCount } = await adminClient
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.tenant_id)
+                .eq('role', 'member')
+
+            // Get total transaction count (points issued)
+            const { count: transactionCount } = await adminClient
+                .from('points_ledger')
+                .select('*', { count: 'exact', head: true })
+                .eq('tenant_id', tenant.tenant_id)
+
+            return {
+                ...tenant,
+                members_count: memberCount || 0,
+                transactions_count: transactionCount || 0
+            }
+        })
+    )
+
+    return enrichedTenants
 }
 
 /**
