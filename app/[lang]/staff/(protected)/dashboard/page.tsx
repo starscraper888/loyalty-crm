@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { isPlatformAdmin } from '@/lib/platform/admin'
 import { redirect } from 'next/navigation'
+import SuperadminRedirect from './SuperadminRedirect'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -51,6 +52,7 @@ export default async function DashboardPage() {
 
     return (
         <div className="p-8">
+            <SuperadminRedirect />
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Dashboard</h1>
 
