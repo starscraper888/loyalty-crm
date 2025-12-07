@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createBillingPortalSession, updateSubscription, createCreditPurchaseSession, stripe, STRIPE_PRICES } from '@/lib/stripe/client'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { logAudit, AUDIT_ACTIONS } from '@/lib/audit/middleware'
 
 /**
  * Get current tenant's subscription details
@@ -203,6 +204,14 @@ export async function changePlan(newTier: 'starter' | 'pro' | 'enterprise') {
             // The webhook will eventually fix consistency if this fails.
         }
 
+        // Audit log: Track who changed the subscription plan
+        await logAudit({
+            action: AUDIT_ACTIONS.SUBSCRIPTION_CHANGE,
+            tenantId: profile.tenant_id,
+            actorId: user.id,
+            details: { oldTier: subscription?.tier, newTier }
+        })
+
         revalidatePath('/[lang]/settings/billing')
         return { success: true }
     } catch (error: any) {
@@ -250,6 +259,14 @@ export async function buyCredits(amount: number) {
             },
             successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?success=credits`,
             cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing`,
+        })
+
+        // Audit log: Track credit purchase initiation
+        await logAudit({
+            action: AUDIT_ACTIONS.CREDITS_PURCHASE,
+            tenantId: profile.tenant_id,
+            actorId: user.id,
+            details: { amount }
         })
 
         return { url: session.url }
