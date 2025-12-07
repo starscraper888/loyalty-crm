@@ -1,8 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createBillingPortalSession, updateSubscription, createCreditPurchaseSession, stripe, STRIPE_PRICES } from '@/lib/stripe/client'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 /**
  * Get current tenant's subscription details
@@ -184,12 +186,24 @@ export async function changePlan(newTier: 'starter' | 'pro' | 'enterprise') {
             newPriceId,
         })
 
-        // Update local record (webhook will also update it)
-        await supabase
+        // Update local record explicitly using admin client to bypass RLS
+        // (Webhooks are reliable but async; we need immediate consistency for UI)
+        const adminSupabase = createAdminClient()
+        const { error: updateError } = await adminSupabase
             .from('tenant_subscriptions')
-            .update({ tier: newTier })
+            .update({
+                tier: newTier,
+                updated_at: new Date().toISOString()
+            })
             .eq('tenant_id', profile.tenant_id)
 
+        if (updateError) {
+            console.error('Failed to update local subscription record:', updateError)
+            // We don't throw here because Stripe update succeeded, so technically the plan CHANGED.
+            // The webhook will eventually fix consistency if this fails.
+        }
+
+        revalidatePath('/[lang]/settings/billing')
         return { success: true }
     } catch (error: any) {
         console.error('Plan change error:', error)
