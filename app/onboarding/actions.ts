@@ -66,11 +66,27 @@ export async function createTenant(data: {
         }
 
         // 4. Create Stripe customer
-        const stripeCustomer = await createStripeCustomer({
-            email: data.ownerEmail,
-            name: data.businessName,
-            tenantId: tenant.id,
-        })
+        let stripeCustomer
+        try {
+            stripeCustomer = await createStripeCustomer({
+                email: data.ownerEmail,
+                name: data.businessName,
+                tenantId: tenant.id,
+            })
+        } catch (stripeError) {
+            console.error('Stripe customer creation failed:', stripeError)
+            // Rollback everything
+            await adminSupabase.auth.admin.deleteUser(authData.user.id)
+            await adminSupabase.from('tenants').delete().eq('id', tenant.id)
+            return { error: 'Failed to create Stripe customer. Please check your Stripe API key.' }
+        }
+
+        if (!stripeCustomer?.id) {
+            // Rollback
+            await adminSupabase.auth.admin.deleteUser(authData.user.id)
+            await adminSupabase.from('tenants').delete().eq('id', tenant.id)
+            return { error: 'Stripe customer was not created properly' }
+        }
 
         // 5. Create subscription record
         const trialDays = data.tier === 'starter' ? 30 : data.tier === 'pro' ? 30 : 30
@@ -87,7 +103,7 @@ export async function createTenant(data: {
 
         if (subscriptionError) {
             console.error('Failed to create subscription record:', subscriptionError)
-            // Continue anyway - can be fixed manually
+            return { error: `Failed to create subscription: ${subscriptionError.message}` }
         }
 
         // 6. Create tenant settings
