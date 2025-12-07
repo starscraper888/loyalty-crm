@@ -200,7 +200,6 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
 
     console.log(`Checkout completed for customer ${session.customer}`)
 }
-}
 
 async function handleCreditPurchase(supabase: any, session: Stripe.Checkout.Session) {
     const tenantId = session.metadata?.tenant_id
