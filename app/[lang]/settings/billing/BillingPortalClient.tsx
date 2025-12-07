@@ -120,13 +120,13 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                                 {subscription.status === 'trialing' ? 'Free Trial' : subscription.status}
                             </span>
                         </p>
-                        {subscription.trial_ends_at && subscription.status === 'trialing' && (
+                        {currentSubscription.trial_ends_at && currentSubscription.status === 'trialing' && (
                             <p className="text-sm text-slate-500 mt-1">
-                                Trial ends: {new Date(subscription.trial_ends_at).toLocaleDateString()}
+                                Trial ends: {new Date(currentSubscription.trial_ends_at).toLocaleDateString()}
                             </p>
                         )}
                     </div>
-                    {subscription.tier !== 'developer' && (
+                    {currentSubscription.tier !== 'developer' && (
                         <button
                             onClick={handleOpenPortal}
                             disabled={loading}
@@ -200,7 +200,7 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
             </div>
 
             {/* WhatsApp Credits */}
-            {subscription.tier !== 'developer' && (
+            {currentSubscription.tier !== 'developer' && (
                 <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
                     <h3 className="text-lg font-bold text-white mb-4">WhatsApp Credits</h3>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
