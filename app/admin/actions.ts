@@ -39,6 +39,17 @@ export async function createReward(formData: FormData) {
         }
     }
 
+    // Audit log: Track who created the reward
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+        await logAudit({
+            action: AUDIT_ACTIONS.REWARD_CREATE,
+            tenantId: reward.tenant_id,
+            actorId: user.id,
+            details: { rewardId: reward.id, name, cost }
+        })
+    }
+
     revalidatePath('/admin/rewards')
     return { success: true }
 }
@@ -88,6 +99,24 @@ export async function updateReward(id: string, formData: FormData) {
         return { error: error.message }
     }
 
+    // Get tenant_id for audit log
+    const { data: rewardData } = await supabase
+        .from('rewards')
+        .select('tenant_id')
+        .eq('id', id)
+        .single()
+
+    // Audit log: Track who updated the reward
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user && rewardData) {
+        await logAudit({
+            action: AUDIT_ACTIONS.REWARD_EDIT,
+            tenantId: rewardData.tenant_id,
+            actorId: user.id,
+            details: { rewardId: id, updates: { name, cost } }
+        })
+    }
+
     revalidatePath('/admin/rewards')
     return { success: true }
 }
@@ -95,10 +124,10 @@ export async function updateReward(id: string, formData: FormData) {
 export async function deleteReward(id: string) {
     const supabase = await createClient()
 
-    // Get image URL before deleting
+    // Get reward info before deleting for audit log
     const { data: reward } = await supabase
         .from('rewards')
-        .select('image_url')
+        .select('image_url, tenant_id, name')
         .eq('id', id)
         .single()
 
@@ -118,6 +147,17 @@ export async function deleteReward(id: string) {
     // Delete image from storage
     if (reward?.image_url) {
         await deleteRewardImage(reward.image_url)
+    }
+
+    // Audit log: Track who deleted the reward
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user && reward) {
+        await logAudit({
+            action: AUDIT_ACTIONS.REWARD_DELETE,
+            tenantId: reward.tenant_id,
+            actorId: user.id,
+            details: { rewardId: id, rewardName: reward.name }
+        })
     }
 
     revalidatePath('/admin/rewards')
