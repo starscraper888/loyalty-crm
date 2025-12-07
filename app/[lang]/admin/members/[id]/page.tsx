@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import MemberHistoryTable from '../components/MemberHistoryTable'
+import AdminMemberHistory from '../components/AdminMemberHistory'
 import Link from 'next/link'
 
 export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,16 +19,37 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
         return <div className="p-8 text-red-500">Member not found.</div>
     }
 
-    // 2. Fetch Email from Auth (since it might not be in profile yet if we didn't sync it perfectly)
+    // 2. Fetch Email from Auth
     const { data: { user } } = await adminSupabase.auth.admin.getUserById(id)
     const email = user?.email || 'N/A'
 
-    // 3. Fetch Transaction History
-    const { data: transactions, error: ledgerError } = await supabase
+    // 3. Fetch Transaction History with redemption details
+    const { data: ledger } = await supabase
         .from('points_ledger')
         .select('*')
         .eq('profile_id', id)
         .order('created_at', { ascending: false })
+
+    // 4. Fetch redemption details to get status
+    const { data: redemptions } = await supabase
+        .from('redemptions')
+        .select('id, status, reward_id, rewards(name)')
+        .eq('profile_id', id)
+
+    // Map redemption status to transactions
+    const transactions = ledger?.map(t => {
+        if (t.type === 'redeem') {
+            const redemption = redemptions?.find(r =>
+                Math.abs(t.points) === r.rewards?.cost // Match by points (simple matching)
+            )
+            return {
+                ...t,
+                status: redemption?.status || 'completed',
+                reward_name: redemption?.rewards?.name
+            }
+        }
+        return t
+    }) || []
 
     return (
         <div className="p-8">
@@ -81,7 +102,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                 {/* Transaction History */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Transaction History</h2>
-                    <MemberHistoryTable transactions={transactions || []} />
+                    <AdminMemberHistory transactions={transactions} memberId={id} />
                 </div>
             </div>
         </div>
