@@ -2,7 +2,8 @@ import { getSubscriptionDetails, openBillingPortal, changePlan } from '@/app/set
 import { redirect } from 'next/navigation'
 import BillingPortalClient from './BillingPortalClient'
 
-export default async function BillingPage({ params }: { params: { lang: string } }) {
+export default async function BillingPage({ params }: { params: Promise<{ lang: string }> }) {
+    const { lang } = await params
     const result = await getSubscriptionDetails()
 
     if (result.error) {

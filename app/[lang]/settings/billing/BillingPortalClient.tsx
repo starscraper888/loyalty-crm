@@ -246,66 +246,72 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                 <h3 className="text-lg font-bold text-white mb-6">Available Plans</h3>
                 <div className="grid md:grid-cols-3 gap-6">
                     {/* Starter */}
-                    {subscription.tier !== 'starter' && (
-                        <div className="border border-slate-600 bg-slate-900/50 rounded-xl p-6 hover:border-blue-500/50 transition-colors">
-                            <h4 className="font-bold text-lg text-white">Starter</h4>
-                            <p className="text-3xl font-bold mt-2 text-blue-400">$29<span className="text-sm font-normal text-slate-400">/mo</span></p>
-                            <ul className="mt-4 space-y-2 text-sm text-slate-400">
-                                <li>✓ 1,000 members</li>
-                                <li>✓ 5,000 transactions/mo</li>
-                            </ul>
-                            <button
-                                onClick={() => handleChangePlan('starter')}
-                                disabled={changingPlan}
-                                className="w-full mt-6 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-500/10 transition disabled:opacity-50"
-                            >
-                                {changingPlan ? 'Processing...' : (subscription.tier === 'pro' || subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade')}
-                            </button>
-                        </div>
-                    )}
+                    <div className={`border rounded-xl p-6 transition-colors ${subscription.tier === 'starter' ? 'border-blue-500 bg-blue-500/10' : 'border-slate-600 bg-slate-900/50 hover:border-blue-500/50'}`}>
+                        <h4 className="font-bold text-lg text-white">Starter</h4>
+                        <p className="text-3xl font-bold mt-2 text-blue-400">$29<span className="text-sm font-normal text-slate-400">/mo</span></p>
+                        <ul className="mt-4 space-y-2 text-sm text-slate-400">
+                            <li>✓ 1,000 members</li>
+                            <li>✓ 5,000 transactions/mo</li>
+                        </ul>
+                        <button
+                            onClick={() => handleChangePlan('starter')}
+                            disabled={changingPlan || subscription.tier === 'starter'}
+                            className={`w-full mt-6 border px-4 py-2 rounded-lg transition disabled:opacity-50 ${subscription.tier === 'starter'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10'
+                                }`}
+                        >
+                            {subscription.tier === 'starter' ? 'Current Plan' : (changingPlan ? 'Processing...' : 'Downgrade')}
+                        </button>
+                    </div>
 
                     {/* Pro */}
-                    {subscription.tier !== 'pro' && (
-                        <div className="border border-blue-500 bg-blue-900/10 rounded-xl p-6 relative shadow-lg shadow-blue-900/20">
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                                POPULAR
-                            </div>
-                            <h4 className="font-bold text-lg text-white">Pro</h4>
-                            <p className="text-3xl font-bold mt-2 text-blue-400">$99<span className="text-sm font-normal text-slate-400">/mo</span></p>
-                            <ul className="mt-4 space-y-2 text-sm text-slate-300">
-                                <li>✓ 10,000 members</li>
-                                <li>✓ 50,000 transactions/mo</li>
-                                <li>✓ Advanced analytics</li>
-                            </ul>
-                            <button
-                                onClick={() => handleChangePlan('pro')}
-                                disabled={changingPlan}
-                                className="w-full mt-6 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition disabled:opacity-50 shadow-lg shadow-blue-600/20"
-                            >
-                                {changingPlan ? 'Processing...' : (subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade')}
-                            </button>
+                    <div className={`border rounded-xl p-6 relative shadow-lg ${subscription.tier === 'pro' ? 'border-blue-500 bg-blue-500/10 shadow-blue-900/20' : 'border-blue-500 bg-blue-900/10 shadow-blue-900/20'}`}>
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                            POPULAR
                         </div>
-                    )}
+                        <h4 className="font-bold text-lg text-white">Pro</h4>
+                        <p className="text-3xl font-bold mt-2 text-blue-400">$99<span className="text-sm font-normal text-slate-400">/mo</span></p>
+                        <ul className="mt-4 space-y-2 text-sm text-slate-300">
+                            <li>✓ 10,000 members</li>
+                            <li>✓ 50,000 transactions/mo</li>
+                            <li>✓ Advanced analytics</li>
+                        </ul>
+                        <button
+                            onClick={() => handleChangePlan('pro')}
+                            disabled={changingPlan || subscription.tier === 'pro'}
+                            className={`w-full mt-6 px-4 py-2 rounded-lg transition disabled:opacity-50 shadow-lg ${subscription.tier === 'pro'
+                                ? 'bg-slate-700 text-white'
+                                : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20'
+                                }`}
+                        >
+                            {subscription.tier === 'pro'
+                                ? 'Current Plan'
+                                : (changingPlan ? 'Processing...' : (subscription.tier === 'enterprise' ? 'Downgrade' : 'Upgrade'))
+                            }
+                        </button>
+                    </div>
 
                     {/* Enterprise */}
-                    {subscription.tier !== 'enterprise' && (
-                        <div className="border border-slate-600 bg-slate-900/50 rounded-xl p-6 hover:border-purple-500/50 transition-colors">
-                            <h4 className="font-bold text-lg text-white">Enterprise</h4>
-                            <p className="text-3xl font-bold mt-2 text-purple-400">$299<span className="text-sm font-normal text-slate-400">/mo</span></p>
-                            <ul className="mt-4 space-y-2 text-sm text-slate-400">
-                                <li>✓ Unlimited everything</li>
-                                <li>✓ White-label</li>
-                                <li>✓ Dedicated support</li>
-                            </ul>
-                            <button
-                                onClick={() => handleChangePlan('enterprise')}
-                                disabled={changingPlan}
-                                className="w-full mt-6 bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition disabled:opacity-50"
-                            >
-                                {changingPlan ? 'Processing...' : 'Upgrade'}
-                            </button>
-                        </div>
-                    )}
+                    <div className={`border rounded-xl p-6 transition-colors ${subscription.tier === 'enterprise' ? 'border-purple-500 bg-purple-500/10' : 'border-slate-600 bg-slate-900/50 hover:border-purple-500/50'}`}>
+                        <h4 className="font-bold text-lg text-white">Enterprise</h4>
+                        <p className="text-3xl font-bold mt-2 text-purple-400">$299<span className="text-sm font-normal text-slate-400">/mo</span></p>
+                        <ul className="mt-4 space-y-2 text-sm text-slate-400">
+                            <li>✓ Unlimited everything</li>
+                            <li>✓ White-label</li>
+                            <li>✓ Dedicated support</li>
+                        </ul>
+                        <button
+                            onClick={() => handleChangePlan('enterprise')}
+                            disabled={changingPlan || subscription.tier === 'enterprise'}
+                            className={`w-full mt-6 px-4 py-2 rounded-lg transition disabled:opacity-50 ${subscription.tier === 'enterprise'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-slate-700 text-white hover:bg-slate-600'
+                                }`}
+                        >
+                            {subscription.tier === 'enterprise' ? 'Current Plan' : (changingPlan ? 'Processing...' : 'Upgrade')}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
