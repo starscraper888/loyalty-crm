@@ -1,17 +1,47 @@
 {
-    "welcome": "欢迎使用忠诚度 CRM",
+    "welcome": "欢迎使用忠诚度CRM",
     "login": "登录",
     "points": "积分",
     "redeem": "兑换",
+    "landing": {
+        "nav": {
+            "business_login": "企业登录",
+            "get_started": "开始使用"
+        },
+        "hero": {
+            "badge": "新功能：WhatsApp集成已上线",
+            "title": "建立客户忠诚度",
+            "title_highlight": "持久不衰",
+            "subtitle": "专为现代企业设计的一体化忠诚度平台。几分钟内启动您的计划，而非几个月。",
+            "cta_trial": "开始免费试用",
+            "cta_login": "企业登录",
+            "trial_feature": "30天免费试用",
+            "cancel_feature": "随时取消"
+        },
+        "features": {
+            "points_title": "积分与奖励",
+            "points_desc": "创建灵活的积分规则和令人兴奋的奖励目录，让客户不断回头。",
+            "portal_title": "会员门户",
+            "portal_desc": "为客户提供精美的自助门户，以查看余额和兑换奖励。",
+            "analytics_title": "实时分析",
+            "analytics_desc": "实时跟踪计划表现、会员增长和兑换率。"
+        },
+        "footer": {
+            "copyright": "版权所有。",
+            "lang_en": "English",
+            "lang_bm": "Bahasa Melayu",
+            "lang_zh": "中文"
+        }
+    },
     "calculator": {
-        "title": "WhatsApp 成本计算器",
+        "title": "WhatsApp成本计算器",
         "country": "国家",
         "category": "类别",
         "projections": "预测"
     },
     "import": {
         "title": "批量导入",
-        "upload": "上传 CSV",
+        "upload": "上传CSV",
         "map": "映射列",
         "validate": "验证",
         "success": "导入成功"
@@ -19,6 +49,6 @@
     "analytics": {
         "active_members": "活跃会员",
         "revenue": "收入",
-        "repeat_rate": "复购率"
+        "repeat_rate": "重复率"
     }
 }

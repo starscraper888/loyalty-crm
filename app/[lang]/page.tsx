@@ -21,13 +21,13 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                                 href={`/${lang}/staff/login`}
                                 className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
                             >
-                                Business Login
+                                {dict.landing.nav.business_login}
                             </Link>
                             <Link
                                 href="/onboarding"
                                 className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40"
                             >
-                                Get Started
+                                {dict.landing.nav.get_started}
                             </Link>
                         </div>
                     </div>
@@ -48,19 +48,18 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                         </span>
-                        New: WhatsApp Integration Available
+                        {dict.landing.hero.badge}
                     </div>
 
                     <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
-                        Build Customer Loyalty <br />
+                        {dict.landing.hero.title} <br />
                         <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-                            That Lasts Forever
+                            {dict.landing.hero.title_highlight}
                         </span>
                     </h1>
 
                     <p className="mt-4 text-xl text-slate-400 max-w-2xl mx-auto mb-10">
-                        The all-in-one loyalty platform designed for modern businesses.
-                        Launch your program in minutes, not months.
+                        {dict.landing.hero.subtitle}
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -68,24 +67,24 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                             href="/onboarding"
                             className="w-full sm:w-auto px-8 py-4 text-lg font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-1"
                         >
-                            Start Free Trial
+                            {dict.landing.hero.cta_trial}
                         </Link>
                         <Link
                             href={`/${lang}/staff/login`}
                             className="w-full sm:w-auto px-8 py-4 text-lg font-medium bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-xl transition-all hover:-translate-y-1"
                         >
-                            Business Login
+                            {dict.landing.hero.cta_login}
                         </Link>
                     </div>
 
                     <div className="mt-12 flex items-center justify-center gap-8 text-sm text-slate-500">
                         <div className="flex items-center gap-2">
                             <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                            30-day free trial
+                            {dict.landing.hero.trial_feature}
                         </div>
                         <div className="flex items-center gap-2">
                             <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                            Cancel anytime
+                            {dict.landing.hero.cancel_feature}
                         </div>
                     </div>
                 </div>
@@ -100,8 +99,8 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                             <div className="w-12 h-12 rounded-lg bg-blue-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-3">Points & Rewards</h3>
-                            <p className="text-slate-400">Create flexible earning rules and exciting rewards catalog to keep customers coming back.</p>
+                            <h3 className="text-xl font-bold text-white mb-3">{dict.landing.features.points_title}</h3>
+                            <p className="text-slate-400">{dict.landing.features.points_desc}</p>
                         </div>
 
                         {/* Feature 2 */}
@@ -109,8 +108,8 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                             <div className="w-12 h-12 rounded-lg bg-indigo-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-3">Member Portal</h3>
-                            <p className="text-slate-400">Give customers a beautiful self-service portal to check balance and redeem rewards.</p>
+                            <h3 className="text-xl font-bold text-white mb-3">{dict.landing.features.portal_title}</h3>
+                            <p className="text-slate-400">{dict.landing.features.portal_desc}</p>
                         </div>
 
                         {/* Feature 3 */}
@@ -118,8 +117,8 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
                             <div className="w-12 h-12 rounded-lg bg-cyan-900/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-3">Real-time Analytics</h3>
-                            <p className="text-slate-400">Track program performance, member growth, and redemption rates in real-time.</p>
+                            <h3 className="text-xl font-bold text-white mb-3">{dict.landing.features.analytics_title}</h3>
+                            <p className="text-slate-400">{dict.landing.features.analytics_desc}</p>
                         </div>
                     </div>
                 </div>
@@ -127,11 +126,11 @@ export default async function Page({ params }: { params: Promise<{ lang: 'en' | 
 
             {/* Footer */}
             <footer className="py-12 border-t border-slate-800 text-center text-slate-500 text-sm">
-                <p>&copy; {new Date().getFullYear()} Loyalty CRM. All rights reserved.</p>
+                <p>&copy; {new Date().getFullYear()} Loyalty CRM. {dict.landing.footer.copyright}</p>
                 <div className="mt-4 flex justify-center gap-6">
-                    <Link href={`/en`} className="hover:text-blue-400 transition-colors">English</Link>
-                    <Link href={`/bm`} className="hover:text-blue-400 transition-colors">Bahasa Melayu</Link>
-                    <Link href={`/zh`} className="hover:text-blue-400 transition-colors">中文</Link>
+                    <Link href={`/en`} className="hover:text-blue-400 transition-colors">{dict.landing.footer.lang_en}</Link>
+                    <Link href={`/bm`} className="hover:text-blue-400 transition-colors">{dict.landing.footer.lang_bm}</Link>
+                    <Link href={`/zh`} className="hover:text-blue-400 transition-colors">{dict.landing.footer.lang_zh}</Link>
                 </div>
             </footer>
         </main>

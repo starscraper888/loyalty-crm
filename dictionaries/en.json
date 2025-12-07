@@ -3,6 +3,36 @@
     "login": "Login",
     "points": "Points",
     "redeem": "Redeem",
+    "landing": {
+        "nav": {
+            "business_login": "Business Login",
+            "get_started": "Get Started"
+        },
+        "hero": {
+            "badge": "New: WhatsApp Integration Available",
+            "title": "Build Customer Loyalty",
+            "title_highlight": "That Lasts Forever",
+            "subtitle": "The all-in-one loyalty platform designed for modern businesses. Launch your program in minutes, not months.",
+            "cta_trial": "Start Free Trial",
+            "cta_login": "Business Login",
+            "trial_feature": "30-day free trial",
+            "cancel_feature": "Cancel anytime"
+        },
+        "features": {
+            "points_title": "Points & Rewards",
+            "points_desc": "Create flexible earning rules and exciting rewards catalog to keep customers coming back.",
+            "portal_title": "Member Portal",
+            "portal_desc": "Give customers a beautiful self-service portal to check balance and redeem rewards.",
+            "analytics_title": "Real-time Analytics",
+            "analytics_desc": "Track program performance, member growth, and redemption rates in real-time."
+        },
+        "footer": {
+            "copyright": "All rights reserved.",
+            "lang_en": "English",
+            "lang_bm": "Bahasa Melayu",
+            "lang_zh": "中文"
+        }
+    },
     "calculator": {
         "title": "WhatsApp Cost Calculator",
         "country": "Country",

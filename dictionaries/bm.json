@@ -1,8 +1,38 @@
 {
-    "welcome": "Selamat Datang ke CRM Kesetiaan",
+    "welcome": "Selamat Datang ke Loyalty CRM",
     "login": "Log Masuk",
-    "points": "Mata Ganjaran",
+    "points": "Mata",
     "redeem": "Tebus",
+    "landing": {
+        "nav": {
+            "business_login": "Log Masuk Perniagaan",
+            "get_started": "Mulakan"
+        },
+        "hero": {
+            "badge": "Baharu: Integrasi WhatsApp Telah Tersedia",
+            "title": "Bina Kesetiaan Pelanggan",
+            "title_highlight": "Yang Kekal Selamanya",
+            "subtitle": "Platform kesetiaan serba lengkap direka untuk perniagaan moden. Lancarkan program anda dalam beberapa minit, bukan bulan.",
+            "cta_trial": "Mulakan Percubaan Percuma",
+            "cta_login": "Log Masuk Perniagaan",
+            "trial_feature": "Percubaan percuma 30 hari",
+            "cancel_feature": "Batal bila-bila masa"
+        },
+        "features": {
+            "points_title": "Mata & Ganjaran",
+            "points_desc": "Cipta peraturan perolehan yang fleksibel dan katalog ganjaran yang menarik untuk menarik pelanggan kembali.",
+            "portal_title": "Portal Ahli",
+            "portal_desc": "Berikan pelanggan portal layan diri yang cantik untuk menyemak baki dan menebus ganjaran.",
+            "analytics_title": "Analitik Masa Sebenar",
+            "analytics_desc": "Jejaki prestasi program, pertumbuhan ahli, dan kadar penebusan dalam masa sebenar."
+        },
+        "footer": {
+            "copyright": "Hak cipta terpelihara.",
+            "lang_en": "English",
+            "lang_bm": "Bahasa Melayu",
+            "lang_zh": "中文"
+        }
+    },
     "calculator": {
         "title": "Kalkulator Kos WhatsApp",
         "country": "Negara",
