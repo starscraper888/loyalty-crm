@@ -33,7 +33,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
     // 4. Fetch redemption details to get status
     const { data: redemptionsData } = await supabase
         .from('redemptions')
-        .select('id, status, created_at')
+        .select('id, status, redeemed_at')
         .eq('profile_id', id)
 
     // Map redemption status to transactions (match by timestamp)
@@ -42,11 +42,11 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
             // Find redemption that matches this transaction by timestamp
             const redemption = redemptionsData.find(r => {
                 const tTime = new Date(t.created_at).getTime()
-                const rTime = new Date(r.created_at).getTime()
+                const rTime = new Date(r.redeemed_at).getTime()
                 const timeDiff = Math.abs(tTime - rTime)
 
                 // Match if within 60 seconds OR same date (for cases where time sync is off)
-                const sameDate = new Date(t.created_at).toDateString() === new Date(r.created_at).toDateString()
+                const sameDate = new Date(t.created_at).toDateString() === new Date(r.redeemed_at).toDateString()
 
                 return timeDiff < 60000 || sameDate
             })
