@@ -355,3 +355,22 @@ export async function deleteMember(id: string) {
     revalidatePath('/admin/members')
     return { success: true }
 }
+
+
+export async function voidRedemption(redemptionId: string, reason: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Not authenticated' }
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (!['admin', 'owner', 'manager'].includes(profile?.role || '')) {
+        return { error: 'Insufficient permissions' }
+    }
+    const { data, error } = await supabase.rpc('void_redemption', {
+        p_redemption_id: redemptionId, p_void_reason: reason, p_voided_by: user.id
+    })
+    if (error) return { error: error.message }
+    if (!data.success) return { error: data.error }
+    revalidatePath('/admin/members')
+    revalidatePath('/member/history')
+    return { success: true, message: Refunded  points for , refundedPoints: data.refunded_points }
+}
