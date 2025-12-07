@@ -65,6 +65,12 @@ export default function AdminNavbar({ email, role }: { email?: string, role?: st
                     </div>
                     <div className="flex items-center gap-4">
                         <Link
+                            href={`/${lang}/superadmin`}
+                            className="text-sm font-medium text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+                        >
+                            🔐 Platform Admin
+                        </Link>
+                        <Link
                             href={`/${lang}/staff/dashboard`}
                             className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                         >
