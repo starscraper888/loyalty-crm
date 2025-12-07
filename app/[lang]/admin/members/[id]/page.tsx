@@ -39,11 +39,16 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
     // Map redemption status to transactions (match by timestamp)
     const transactions = ledger?.map(t => {
         if (t.type === 'redeem' && redemptionsData) {
-            // Find redemption that matches this transaction by timestamp (within 5 seconds)
+            // Find redemption that matches this transaction by timestamp
             const redemption = redemptionsData.find(r => {
                 const tTime = new Date(t.created_at).getTime()
                 const rTime = new Date(r.created_at).getTime()
-                return Math.abs(tTime - rTime) < 5000 // Within 5 seconds
+                const timeDiff = Math.abs(tTime - rTime)
+
+                // Match if within 60 seconds OR same date (for cases where time sync is off)
+                const sameDate = new Date(t.created_at).toDateString() === new Date(r.created_at).toDateString()
+
+                return timeDiff < 60000 || sameDate
             })
 
             if (redemption) {
