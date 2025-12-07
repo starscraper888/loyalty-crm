@@ -48,42 +48,8 @@ export default function OnboardingPage() {
 
         if (result.error) {
             setError(result.error)
-            setLoading(false)
-            return
-        }
-
-        // Redirect to payment or dashboard
-        if (selectedTier === 'starter' || selectedTier === 'pro' || selectedTier === 'enterprise') {
-            router.push(`/onboarding/payment?tier=${selectedTier}&tenant=${result.tenantId}`)
-        }
-    }
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-8">
-                {/* Progress Bar */}
-                <div className="mb-8">
-                    <div className="flex justify-between mb-2">
-                        <span className={`text-sm font-medium ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-                            Business Info
-                        </span>
-                        <span className={`text-sm font-medium ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-                            Owner Account
-                        </span>
-                        <span className={`text-sm font-medium ${step >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
-                            Choose Plan
-                        </span>
-                    </div>
-                    <div className="h-2 bg-gray-200 rounded-full">
-                        <div
-                            className="h-2 bg-blue-600 rounded-full transition-all duration-300"
-                            style={{ width: `${(step / 3) * 100}%` }}
-                        />
-                    </div>
-                </div>
-
-                {/* Step 1: Business Info */}
-                {step === 1 && (
+            {
+                step === 1 && (
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900">Welcome! Let's get started</h2>
@@ -98,7 +64,7 @@ export default function OnboardingPage() {
                                 type="text"
                                 value={businessName}
                                 onChange={(e) => setBusinessName(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                 placeholder="e.g., Acme Coffee Shop"
                             />
                         </div>
@@ -107,15 +73,17 @@ export default function OnboardingPage() {
 
                         <button
                             onClick={handleNext}
-                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl"
                         >
                             Continue
                         </button>
                     </div>
-                )}
+                )
+            }
 
-                {/* Step 2: Owner Account */}
-                {step === 2 && (
+            {/* Step 2: Owner Account */ }
+            {
+                step === 2 && (
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
@@ -128,7 +96,7 @@ export default function OnboardingPage() {
                                 type="text"
                                 value={ownerName}
                                 onChange={(e) => setOwnerName(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                 placeholder="John Doe"
                             />
                         </div>
@@ -139,7 +107,7 @@ export default function OnboardingPage() {
                                 type="email"
                                 value={ownerEmail}
                                 onChange={(e) => setOwnerEmail(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                 placeholder="john@example.com"
                             />
                         </div>
@@ -150,7 +118,7 @@ export default function OnboardingPage() {
                                 type="password"
                                 value={ownerPassword}
                                 onChange={(e) => setOwnerPassword(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                                 placeholder="Min. 8 characters"
                             />
                         </div>
@@ -172,10 +140,12 @@ export default function OnboardingPage() {
                             </button>
                         </div>
                     </div>
-                )}
+                )
+            }
 
-                {/* Step 3: Choose Plan */}
-                {step === 3 && (
+            {/* Step 3: Choose Plan */ }
+            {
+                step === 3 && (
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-900">Choose your plan</h2>
@@ -281,8 +251,9 @@ export default function OnboardingPage() {
                             </button>
                         </div>
                     </div>
-                )}
-            </div>
-        </div>
+                )
+            }
+            </div >
+        </div >
     )
 }
