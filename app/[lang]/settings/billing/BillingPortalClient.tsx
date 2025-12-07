@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { openBillingPortal, changePlan, buyCredits } from '@/app/settings/actions'
 
 export default function BillingPortalClient({ subscription, usage, limits, credits }: any) {
+    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [changingPlan, setChangingPlan] = useState(false)
     const [buyingCredits, setBuyingCredits] = useState(false)
@@ -56,6 +59,18 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
 
     return (
         <div className="space-y-6">
+            {/* Header / Back Button */}
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={() => router.back()}
+                    className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                    aria-label="Go back"
+                >
+                    <ArrowLeft className="w-6 h-6 text-slate-500 dark:text-slate-400" />
+                </button>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Billing & Subscription</h1>
+            </div>
+
             {/* Current Plan */}
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
                 <div className="flex justify-between items-start">

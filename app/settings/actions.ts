@@ -191,9 +191,9 @@ export async function changePlan(newTier: 'starter' | 'pro' | 'enterprise') {
             .eq('tenant_id', profile.tenant_id)
 
         return { success: true }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Plan change error:', error)
-        return { error: 'Failed to change plan' }
+        return { error: error?.message || 'Failed to change plan' }
     }
 }
 
