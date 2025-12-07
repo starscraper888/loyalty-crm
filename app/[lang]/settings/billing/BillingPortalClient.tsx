@@ -308,7 +308,6 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                     )}
                 </div>
             </div>
-            )}
         </div>
     )
 }
