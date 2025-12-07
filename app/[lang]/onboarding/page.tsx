@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createTenant } from '@/app/onboarding/actions'
+import { createClient } from '@/lib/supabase/client'
 
 export default function OnboardingPage() {
     const router = useRouter()
@@ -50,6 +51,22 @@ export default function OnboardingPage() {
             setError(result.error)
             setLoading(false)
             return
+        }
+
+        // Auto-login the user
+        try {
+            const supabase = createClient()
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: ownerEmail,
+                password: ownerPassword,
+            })
+
+            if (signInError) {
+                console.error('Auto-login failed:', signInError)
+                // We don't block the flow, but user might need to login manually
+            }
+        } catch (e) {
+            console.error('Auto-login error:', e)
         }
 
         // Redirect to payment
@@ -193,8 +210,8 @@ export default function OnboardingPage() {
                             <div
                                 onClick={() => setSelectedTier('starter')}
                                 className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${selectedTier === 'starter'
-                                        ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
-                                        : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
+                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
+                                    : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
@@ -221,8 +238,8 @@ export default function OnboardingPage() {
                             <div
                                 onClick={() => setSelectedTier('pro')}
                                 className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${selectedTier === 'pro'
-                                        ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
-                                        : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
+                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
+                                    : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
@@ -249,8 +266,8 @@ export default function OnboardingPage() {
                             <div
                                 onClick={() => setSelectedTier('enterprise')}
                                 className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${selectedTier === 'enterprise'
-                                        ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
-                                        : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
+                                    ? 'border-blue-500 bg-blue-900/20 shadow-lg shadow-blue-500/20'
+                                    : 'border-slate-600 hover:border-blue-500/50 hover:shadow-md'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
