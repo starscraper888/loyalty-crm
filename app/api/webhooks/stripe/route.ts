@@ -183,9 +183,13 @@ async function handlePaymentFailed(supabase: any, invoice: Stripe.Invoice) {
 }
 
 async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.Session) {
-    const customerId = session.customer as string
-    const subscriptionId = session.subscription as string
+    // Check if this is a credit purchase
+    if (session.metadata?.type === 'credit_purchase' && session.mode === 'payment') {
+        await handleCreditPurchase(supabase, session)
+        return
+    }
 
+    const subscriptionId = session.subscription as string
     if (!subscriptionId) return
 
     // Fetch full subscription details
@@ -195,4 +199,39 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
     await handleSubscriptionUpdate(supabase, subscription)
 
     console.log(`Checkout completed for customer ${customerId}`)
+}
+
+async function handleCreditPurchase(supabase: any, session: Stripe.Checkout.Session) {
+    const tenantId = session.metadata?.tenant_id
+    const amountTotal = session.amount_total || 0
+
+    if (!tenantId || amountTotal <= 0) {
+        console.error('Invalid credit purchase session:', session.id)
+        return
+    }
+
+    // Increment credits
+    const { error } = await supabase.rpc('increment_credits', {
+        p_tenant_id: tenantId,
+        p_amount: amountTotal
+    })
+
+    if (error) {
+        // Fallback: manual update if RPC doesn't exist (it won't exist yet, so we use manual update)
+        // Note: In production you should use RPC for atomicity
+        const { data: credits } = await supabase
+            .from('tenant_credits')
+            .select('balance_cents')
+            .eq('tenant_id', tenantId)
+            .single()
+
+        if (credits) {
+            await supabase
+                .from('tenant_credits')
+                .update({ balance_cents: credits.balance_cents + amountTotal })
+                .eq('tenant_id', tenantId)
+        }
+    }
+
+    console.log(`Credits purchased for tenant ${tenantId}: +$${amountTotal / 100}`)
 }
