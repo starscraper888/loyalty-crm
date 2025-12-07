@@ -180,7 +180,7 @@ export async function changePlan(newTier: 'starter' | 'pro' | 'enterprise') {
 
     try {
         await updateSubscription({
-            subscriptionId: subscription.stripe_subscription_id,
+            subscriptionId: subscriptionId,
             newPriceId,
         })
 
