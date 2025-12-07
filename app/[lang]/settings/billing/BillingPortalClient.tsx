@@ -12,6 +12,16 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
     const [changingPlan, setChangingPlan] = useState(false)
     const [buyingCredits, setBuyingCredits] = useState(false)
 
+    // Optimistic UI state
+    const [currentSubscription, setCurrentSubscription] = useState(subscription)
+
+    // Sync with server updates
+    useState(() => {
+        if (subscription && subscription.tier !== currentSubscription.tier) {
+            setCurrentSubscription(subscription)
+        }
+    })
+
     // ... (keep helper functions same) ...
 
     const [successMessage, setSuccessMessage] = useState('')
@@ -42,6 +52,12 @@ export default function BillingPortalClient({ subscription, usage, limits, credi
                 setErrorMessage(result.error || 'Failed to update plan')
             } else {
                 setSuccessMessage(`Successfully switched to ${newTier} plan!`)
+                // Optimistic update
+                setCurrentSubscription({
+                    ...currentSubscription,
+                    tier: newTier,
+                    status: 'active' // Assume active on upgrade
+                })
                 router.refresh()
             }
         } catch (error) {
