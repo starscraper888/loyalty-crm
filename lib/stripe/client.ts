@@ -144,3 +144,37 @@ export async function updateSubscription(params: {
 
     return updatedSubscription
 }
+
+/**
+ * Create a checkout session for one-time credit purchase
+ */
+export async function createCreditPurchaseSession(params: {
+    customerId: string
+    priceAmount: number // in cents
+    metadata: Record<string, string>
+    successUrl: string
+    cancelUrl: string
+}) {
+    const session = await stripe.checkout.sessions.create({
+        customer: params.customerId,
+        mode: 'payment',
+        line_items: [
+            {
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'WhatsApp Credits',
+                        description: 'Credits for sending WhatsApp messages',
+                    },
+                    unit_amount: params.priceAmount,
+                },
+                quantity: 1,
+            },
+        ],
+        metadata: params.metadata,
+        success_url: params.successUrl,
+        cancel_url: params.cancelUrl,
+    })
+
+    return session
+}
