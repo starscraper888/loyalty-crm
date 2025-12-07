@@ -31,21 +31,27 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
         .order('created_at', { ascending: false })
 
     // 4. Fetch redemption details to get status
-    const { data: redemptions } = await supabase
+    const { data: redemptionsData } = await supabase
         .from('redemptions')
-        .select('id, status, reward_id, rewards(name)')
+        .select('id, status, created_at')
         .eq('profile_id', id)
 
-    // Map redemption status to transactions
+    // Map redemption status to transactions (match by timestamp)
     const transactions = ledger?.map(t => {
-        if (t.type === 'redeem') {
-            const redemption = redemptions?.find(r =>
-                Math.abs(t.points) === r.rewards?.cost // Match by points (simple matching)
-            )
-            return {
-                ...t,
-                status: redemption?.status || 'completed',
-                reward_name: redemption?.rewards?.name
+        if (t.type === 'redeem' && redemptionsData) {
+            // Find redemption that matches this transaction by timestamp (within 5 seconds)
+            const redemption = redemptionsData.find(r => {
+                const tTime = new Date(t.created_at).getTime()
+                const rTime = new Date(r.created_at).getTime()
+                return Math.abs(tTime - rTime) < 5000 // Within 5 seconds
+            })
+
+            if (redemption) {
+                return {
+                    ...t,
+                    id: redemption.id, // Use redemption ID for void action
+                    status: redemption.status || 'completed'
+                }
             }
         }
         return t
