@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createBillingPortalSession, updateSubscription, STRIPE_PRICES } from '@/lib/stripe/client'
+import { createBillingPortalSession, updateSubscription, createCreditPurchaseSession, stripe, STRIPE_PRICES } from '@/lib/stripe/client'
 import { redirect } from 'next/navigation'
 
 /**
@@ -129,13 +129,42 @@ export async function changePlan(newTier: 'starter' | 'pro' | 'enterprise') {
         .eq('tenant_id', profile.tenant_id)
         .single()
 
-    if (!subscription?.stripe_subscription_id) {
-        return { error: 'No active subscription found' }
+    let subscriptionId = subscription?.stripe_subscription_id
+
+    // Fallback: If no subscription ID in DB, try to find it in Stripe
+    if (!subscriptionId && subscription?.stripe_customer_id) {
+        try {
+            console.log('[Upgrade] Subscription ID missing in DB, fetching from Stripe...')
+            const stripeSubs = await stripe.subscriptions.list({
+                customer: subscription.stripe_customer_id,
+                status: 'all',
+                limit: 1,
+            })
+
+            if (stripeSubs.data.length > 0) {
+                subscriptionId = stripeSubs.data[0].id
+                console.log('[Upgrade] Found active subscription in Stripe:', subscriptionId)
+
+                // Update DB so we don't have to look it up again
+                await supabase
+                    .from('tenant_subscriptions')
+                    .update({
+                        stripe_subscription_id: subscriptionId,
+                        status: stripeSubs.data[0].status,
+                    })
+                    .eq('tenant_id', profile.tenant_id)
+            }
+        } catch (e) {
+            console.error('[Upgrade] Failed to lookup subscription in Stripe:', e)
+        }
     }
 
-    if (subscription.tier === newTier) {
-        return { error: 'Already on this plan' }
+    if (!subscriptionId) {
+        return { error: 'No active subscription found. Please check your billing status.' }
     }
+
+    // Determine current price ID (optional check)
+    // const currentPriceId = subscription.items.data[0].price.id
 
     // Get new price ID
     const newPriceId =
@@ -165,5 +194,53 @@ export async function changePlan(newTier: 'starter' | 'pro' | 'enterprise') {
     } catch (error) {
         console.error('Plan change error:', error)
         return { error: 'Failed to change plan' }
+    }
+}
+
+/**
+ * Buy WhatsApp credits
+ */
+export async function buyCredits(amount: number) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Not authenticated' }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id, role')
+        .eq('id', user.id)
+        .single()
+
+    if (!profile || profile.role !== 'owner') {
+        return { error: 'Only owners can purchase credits' }
+    }
+
+    const { data: subscription } = await supabase
+        .from('tenant_subscriptions')
+        .select('stripe_customer_id')
+        .eq('tenant_id', profile.tenant_id)
+        .single()
+
+    if (!subscription?.stripe_customer_id) {
+        return { error: 'No billing account found' }
+    }
+
+    try {
+        const session = await createCreditPurchaseSession({
+            customerId: subscription.stripe_customer_id,
+            priceAmount: amount * 100, // convert to cents
+            metadata: {
+                tenant_id: profile.tenant_id,
+                type: 'credit_purchase',
+            },
+            successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?success=credits`,
+            cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing`,
+        })
+
+        return { url: session.url }
+    } catch (error) {
+        console.error('Credit purchase error:', error)
+        return { error: 'Failed to create checkout session' }
     }
 }
