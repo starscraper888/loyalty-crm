@@ -233,6 +233,17 @@ export async function createMember(formData: FormData) {
         return { error: "Could not determine your tenant ID." }
     }
 
+    // Check member limit before creating
+    const { checkUsageLimit } = await import('@/lib/usage/tracking')
+    const limitCheck = await checkUsageLimit({
+        tenantId,
+        limitType: 'members'
+    })
+
+    if (!limitCheck.allowed) {
+        return { error: limitCheck.message }
+    }
+
     // 4. Create Auth User
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
         email: email || undefined, // Allow undefined if empty for members (though Supabase Auth usually requires email, we might need a dummy if phone auth isn't primary)

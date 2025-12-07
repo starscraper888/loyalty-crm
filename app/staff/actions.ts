@@ -58,6 +58,17 @@ export async function issuePoints(profileId: string, points: number, description
         return { error: `Insufficient Role: ${staffProfile.role}` }
     }
 
+    // Check transaction limit before processing
+    const { checkUsageLimit } = await import('@/lib/usage/tracking')
+    const limitCheck = await checkUsageLimit({
+        tenantId: staffProfile.tenant_id,
+        limitType: 'transactions'
+    })
+
+    if (!limitCheck.allowed) {
+        return { error: limitCheck.message }
+    }
+
     const { error } = await supabase
         .from('points_ledger')
         .insert({
