@@ -32,8 +32,8 @@ export default async function SuspendedPage() {
         redirect('/en/admin/dashboard')
     }
 
-    // Sign out the user
-    await supabase.auth.signOut()
+    // Keep user signed in so they can access billing to resolve payment issues
+    // await supabase.auth.signOut()
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
