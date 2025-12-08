@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
     const supabase = await createClient()
@@ -8,6 +9,17 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate Limit (10 per minute per staff)
+    const canRequest = await rateLimit({
+        key: `earn:${user.id}`,
+        limit: 10,
+        window: 60
+    })
+
+    if (!canRequest) {
+        return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
 
     // 2. Parse Body
@@ -94,7 +106,29 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Member not found. Please register first.' }, { status: 404 })
     }
 
-    // 5. Issue Points
+    // 5. Issue Points via Secure RPC
+    const pointsAmount = parseInt(String(points))
 
-    return NextResponse.json({ success: true, message: 'Points issued' })
+    const { data: newBalance, error: txError } = await supabase
+        .rpc('process_points_transaction', {
+            p_profile_id: member.id,
+            p_points: pointsAmount,
+            p_type: 'earn',
+            p_description: description || 'Points earned via API'
+        })
+
+    if (txError) {
+        console.error('Transaction error:', txError)
+        return NextResponse.json({ error: 'Failed to process transaction' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+        success: true,
+        message: 'Points earned successfully',
+        balance: newBalance,
+        member: {
+            id: member.id,
+            // name: member.full_name // We didn't select full_name above, strictly speaking
+        }
+    })
 }

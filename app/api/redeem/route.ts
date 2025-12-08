@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
     const supabase = await createClient()
@@ -8,6 +9,17 @@ export async function POST(request: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate Limit (10 per minute per staff)
+    const canRequest = await rateLimit({
+        key: `redeem:${user.id}`,
+        limit: 10,
+        window: 60
+    })
+
+    if (!canRequest) {
+        return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
     }
 
     // 2. Parse Body
@@ -44,41 +56,20 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid or expired OTP' }, { status: 400 })
     }
 
-    // 4. Process Redemption
-    // Mark as completed
-    const { error: updateError } = await supabase
-        .from('redemptions')
-        .update({
-            status: 'completed',
-            redeemed_at: new Date().toISOString(),
-            otp_code: null
+    // 4. Process Redemption Atomically
+    const { data: result, error: rpcError } = await supabase
+        .rpc('complete_redemption', {
+            p_redemption_id: redemption.id,
+            p_otp: otp
         })
-        .eq('id', redemption.id)
 
-    if (updateError) {
-        return NextResponse.json({ error: 'Failed to process redemption' }, { status: 500 })
+    if (rpcError) {
+        console.error('Redemption RPC error:', rpcError)
+        return NextResponse.json({ error: 'System error processing redemption' }, { status: 500 })
     }
 
-    // Deduct Points (Add negative ledger entry)
-    // We need to know the cost. 
-    // The cost was likely checked when creating the redemption?
-    // Or we check reward cost now.
-    const { data: reward } = await supabase
-        .from('rewards')
-        .select('cost, name')
-        .eq('id', redemption.reward_id)
-        .single()
-
-    if (reward) {
-        await supabase
-            .from('points_ledger')
-            .insert({
-                tenant_id: member.tenant_id,
-                profile_id: member.id,
-                points: -reward.cost,
-                type: 'redeem',
-                description: `Redeemed: ${reward.name}`
-            })
+    if (!result.success) {
+        return NextResponse.json({ error: result.error || 'Redemption failed' }, { status: 400 })
     }
 
     return NextResponse.json({ success: true, message: 'Redemption successful' })

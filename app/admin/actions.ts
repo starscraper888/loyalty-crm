@@ -190,7 +190,14 @@ export async function createMember(formData: FormData) {
 
     if (isStaffOrHigher) {
         if (!email) return { error: "Email is required for Staff, Manager, and Admin." }
-        if (!password || password.length < 6) return { error: "Password (min 6 chars) is required for Staff, Manager, and Admin." }
+
+        // Strong Password Policy: Min 8 chars, 1 number, 1 special char
+        const hasNumber = /[0-9]/.test(password)
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+
+        if (!password || password.length < 8 || !hasNumber || !hasSpecial) {
+            return { error: "Password must be at least 8 characters long and include at least one number and one special character." }
+        }
     } else {
         // For Members
         if (!password) {

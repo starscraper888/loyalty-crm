@@ -77,13 +77,15 @@ export default function AddMemberForm() {
                     {/* Password only for Staff+ */}
                     {isStaffOrHigher && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password (Required)</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Password (Required) <span className="text-xs font-normal text-gray-500">(Min 8 chars, 1 number, 1 special)</span>
+                            </label>
                             <input
                                 name="password"
                                 type="text"
-                                placeholder="SecurePassword123"
+                                placeholder="SecurePassword123!"
                                 required
-                                minLength={6}
+                                minLength={8}
                                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
                             />
                         </div>
