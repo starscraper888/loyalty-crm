@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { updateMember, deleteMember } from '@/app/admin/actions'
 import Link from 'next/link'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 export interface Member {
     id: string
@@ -17,6 +18,7 @@ export interface Member {
 export default function MemberItem({ member, isManager }: { member: Member, isManager?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
     const handleUpdate = async (formData: FormData) => {
         const res = await updateMember(member.id, formData)
@@ -29,12 +31,11 @@ export default function MemberItem({ member, isManager }: { member: Member, isMa
     }
 
     const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this member? This will remove their login and points history.')) return
-
         const res = await deleteMember(member.id)
         if (res?.error) {
             alert(res.error)
         }
+        setShowDeleteDialog(false)
     }
 
     if (isEditing) {
@@ -92,10 +93,21 @@ export default function MemberItem({ member, isManager }: { member: Member, isMa
                 {!isManager && (
                     <>
                         <button onClick={() => setIsEditing(true)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
-                        <button onClick={handleDelete} className="text-red-600 hover:text-red-900">Delete</button>
+                        <button onClick={() => setShowDeleteDialog(true)} className="text-red-600 hover:text-red-900">Delete</button>
                     </>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={showDeleteDialog}
+                title="Delete Member?"
+                message={`Are you sure you want to delete ${member.full_name}? This will remove their login and all point transaction history. This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                danger={true}
+                onConfirm={handleDelete}
+                onCancel={() => setShowDeleteDialog(false)}
+            />
         </div>
     )
 }

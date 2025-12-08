@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import AdminMemberHistory from '../components/AdminMemberHistory'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params

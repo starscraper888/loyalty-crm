@@ -120,6 +120,11 @@ export default function MembersTable({ initialMembers, isManager, currentUserRol
                 </button>
             </div>
 
+            {/* Row Count */}
+            <div className="text-sm text-slate-600 dark:text-slate-400">
+                Showing {filteredMembers.length} of {initialMembers.length} members
+            </div>
+
             {/* Table Header with Sort */}
             <div className="bg-gray-800 text-white p-4 rounded-t-xl grid grid-cols-12 gap-4 font-semibold text-sm uppercase tracking-wider">
                 <div className="col-span-3 cursor-pointer hover:text-blue-300" onClick={() => handleSort('full_name')}>Name {sortConfig?.key === 'full_name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</div>
