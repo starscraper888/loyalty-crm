@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, TrendingUp, Users, DollarSign, Award } from 'lucide-react'
 import CampaignAnalytics from '../components/CampaignAnalytics'
+import ExportPDFButton from '../components/ExportPDFButton'
 
 export default async function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
@@ -44,24 +45,41 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
     const roi = cost > 0 ? (((estimatedRevenue - cost) / cost) * 100).toFixed(1) : '0.0'
     const cpa = totalParticipants > 0 ? (cost / totalParticipants).toFixed(2) : '0.00'
 
+    const metrics = {
+        totalParticipants,
+        pointsDistributed,
+        estimatedRevenue,
+        cost,
+        roi,
+        cpa,
+        engagementRate
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
             <div className="max-w-7xl mx-auto">
-                <Link href="/en/admin/campaigns" className="text-blue-600 hover:text-blue-800 mb-6 inline-flex items-center gap-2">
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Campaigns
-                </Link>
+                <div className="flex justify-between items-center mb-6">
+                    <Link href="/en/admin/campaigns" className="text-blue-600 hover:text-blue-800 inline-flex items-center gap-2">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Campaigns
+                    </Link>
+                    <ExportPDFButton
+                        campaign={campaign}
+                        metrics={metrics}
+                        participants={participants || []}
+                    />
+                </div>
 
                 {/* Campaign Header */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mt-4 mb-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-6">
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{campaign.name}</h1>
                             <p className="text-gray-600 dark:text-gray-400">{campaign.description}</p>
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${campaign.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                            campaign.status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
-                                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                campaign.status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                             }`}>
                             {campaign.status}
                         </span>

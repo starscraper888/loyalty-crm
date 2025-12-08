@@ -122,6 +122,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to process transaction' }, { status: 500 })
     }
 
+    // Send points earned email notification (async, don't block response)
+    if (member.email) {
+        const { sendPointsEarnedEmail } = await import('@/lib/email')
+        sendPointsEarnedEmail({
+            memberName: member.full_name || 'Member',
+            memberEmail: member.email,
+            pointsEarned: pointsAmount,
+            newBalance: newBalance,
+            description: description || 'Points earned via API'
+        }).catch(err => console.error('Points earned email failed:', err))
+    }
+
     return NextResponse.json({
         success: true,
         message: 'Points earned successfully',

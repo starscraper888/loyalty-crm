@@ -6,6 +6,7 @@ import { uploadRewardImage, deleteRewardImage } from '@/lib/storage/images'
 import { notifyWelcome } from '@/lib/whatsapp/notifications'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/audit/middleware'
 import { trackUsage } from '@/lib/usage/tracking'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function createReward(formData: FormData) {
     const supabase = await createClient()
@@ -301,6 +302,15 @@ export async function createMember(formData: FormData) {
             fullName || 'Member',
             points
         ).catch(err => console.error('Welcome notification failed:', err))
+
+        // Send welcome email if email is provided
+        if (email) {
+            sendWelcomeEmail({
+                memberName: fullName,
+                memberEmail: email,
+                pointsBalance: points
+            }).catch(err => console.error('Welcome email failed:', err))
+        }
     }
 
     // Get current user for audit log
