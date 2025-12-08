@@ -14,8 +14,7 @@ SELECT
     ts.stripe_customer_id,
     ts.stripe_subscription_id,
     0 as members_count,
-    0 as transactions_count,
-    COALESCE(t.credits_balance, 0) as credits_balance
+    0 as transactions_count
 FROM tenants t
 LEFT JOIN tenant_subscriptions ts ON t.id = ts.tenant_id
 ORDER BY t.created_at DESC;
