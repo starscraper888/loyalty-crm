@@ -267,7 +267,7 @@ export async function getTenantUsageHistory(tenantId: string, months: number = 6
 /**
  * Suspend a tenant account
  */
-export async function suspendTenant(tenantId: string, reason: string) {
+export async function suspendTenant(tenantId: string, reason: string, adminId: string) {
     const adminClient = createAdminClient()
 
     const { error } = await adminClient
@@ -275,7 +275,8 @@ export async function suspendTenant(tenantId: string, reason: string) {
         .update({
             status: 'suspended',
             suspended_at: new Date().toISOString(),
-            suspension_reason: reason
+            suspension_reason: reason,
+            suspended_by: adminId
         })
         .eq('id', tenantId)
 
@@ -288,8 +289,39 @@ export async function suspendTenant(tenantId: string, reason: string) {
     await adminClient.from('audit_logs').insert({
         tenant_id: tenantId,
         action: 'TENANT_SUSPENDED',
-        actor_id: (await adminClient.auth.getUser()).data.user?.id,
+        actor_id: adminId,
         metadata: { reason }
+    })
+
+    return { success: true }
+}
+
+/**
+ * Resume suspended tenant
+ */
+export async function resumeTenant(tenantId: string, adminId: string) {
+    const adminClient = createAdminClient()
+
+    const { error } = await adminClient
+        .from('tenants')
+        .update({
+            status: 'active',
+            suspended_at: null,
+            suspension_reason: null,
+            suspended_by: null
+        })
+        .eq('id', tenantId)
+
+    if (error) {
+        console.error('[Platform] Error resuming tenant:', error)
+        return { error: error.message }
+    }
+
+    // Log action
+    await adminClient.from('audit_logs').insert({
+        tenant_id: tenantId,
+        action: 'TENANT_RESUMED',
+        actor_id: adminId
     })
 
     return { success: true }
@@ -313,4 +345,242 @@ export async function deleteTenant(tenantId: string) {
     }
 
     return { success: true }
+}
+
+/**
+ * Generate impersonation token for a tenant
+ */
+export async function generateImpersonationToken(tenantId: string, adminId: string) {
+    const adminClient = createAdminClient()
+
+    // Get tenant owner
+    const { data: owner, error: ownerError } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('role', 'owner')
+        .single()
+
+    if (ownerError || !owner) {
+        return { error: 'Tenant owner not found' }
+    }
+
+    // Generate token (UUID)
+    const token = crypto.randomUUID()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
+
+    // Insert token
+    const { data, error } = await adminClient
+        .from('impersonation_tokens')
+        .insert({
+            token,
+            tenant_id: tenantId,
+            admin_id: adminId,
+            target_user_id: owner.id,
+            expires_at: expiresAt.toISOString()
+        })
+        .select()
+        .single()
+
+    if (error) {
+        console.error('[Platform] Error creating impersonation token:', error)
+        return { error: error.message }
+    }
+
+    // Log in audit logs
+    await adminClient.from('audit_logs').insert({
+        tenant_id: tenantId,
+        action: 'IMPERSONATION_STARTED',
+        actor_id: adminId,
+        metadata: { target_user_id: owner.id, expires_at: expiresAt.toISOString() }
+    })
+
+    return { success: true, token }
+}
+
+/**
+ * Validate and use impersonation token
+ */
+export async function validateImpersonationToken(token: string) {
+    const adminClient = createAdminClient()
+
+    const { data, error } = await adminClient
+        .from('impersonation_tokens')
+        .select('*')
+        .eq('token', token)
+        .is('used_at', null)
+        .gt('expires_at', new Date().toISOString())
+        .single()
+
+    if (error || !data) {
+        return { error: 'Invalid or expired token' }
+    }
+
+    // Mark token as used
+    await adminClient
+        .from('impersonation_tokens')
+        .update({ used_at: new Date().toISOString(), last_activity_at: new Date().toISOString() })
+        .eq('id', data.id)
+
+    return { success: true, targetUserId: data.target_user_id, tenantId: data.tenant_id }
+}
+
+/**
+ * Toggle developer mode for a tenant
+ */
+export async function toggleDeveloperMode(tenantId: string, enabled: boolean, adminId: string) {
+    const adminClient = createAdminClient()
+
+    const updateData = enabled
+        ? {
+            is_developer_mode: true,
+            developer_mode_enabled_at: new Date().toISOString(),
+            developer_mode_enabled_by: adminId
+        }
+        : {
+            is_developer_mode: false,
+            developer_mode_enabled_at: null,
+            developer_mode_enabled_by: null
+        }
+
+    const { error } = await adminClient
+        .from('tenants')
+        .update(updateData)
+        .eq('id', tenantId)
+
+    if (error) {
+        console.error('[Platform] Error toggling developer mode:', error)
+        return { error: error.message }
+    }
+
+    // Log action
+    await adminClient.from('audit_logs').insert({
+        tenant_id: tenantId,
+        action: enabled ? 'DEVELOPER_MODE_ENABLED' : 'DEVELOPER_MODE_DISABLED',
+        actor_id: adminId,
+        metadata: { enabled }
+    })
+
+    return { success: true }
+}
+
+/**
+ * Cancel tenant subscription (immediate)
+ */
+export async function cancelTenantSubscription(tenantId: string, adminId: string, reason: string) {
+    const adminClient = createAdminClient()
+
+    // Get subscription
+    const { data: subscription } = await adminClient
+        .from('tenant_subscriptions')
+        .select('stripe_subscription_id')
+        .eq('tenant_id', tenantId)
+        .single()
+
+    if (!subscription?.stripe_subscription_id) {
+        return { error: 'No active subscription found' }
+    }
+
+    // Cancel in Stripe (would need Stripe SDK integration)
+    // For now, just update DB
+    const { error } = await adminClient
+        .from('tenant_subscriptions')
+        .update({ status: 'canceled' })
+        .eq('tenant_id', tenantId)
+
+    if (error) {
+        console.error('[Platform] Error canceling subscription:', error)
+        return { error: error.message }
+    }
+
+    // Log action
+    await adminClient.from('audit_logs').insert({
+        tenant_id: tenantId,
+        action: 'SUBSCRIPTION_FORCE_CANCELED',
+        actor_id: adminId,
+        metadata: { reason }
+    })
+
+    return { success: true }
+}
+
+/**
+ * Change tenant plan
+ */
+export async function changeTenantPlan(tenantId: string, newTier: string, adminId: string) {
+    const adminClient = createAdminClient()
+
+    const { error } = await adminClient
+        .from('tenant_subscriptions')
+        .update({ tier: newTier })
+        .eq('tenant_id', tenantId)
+
+    if (error) {
+        console.error('[Platform] Error changing plan:', error)
+        return { error: error.message }
+    }
+
+    // Log action
+    await adminClient.from('audit_logs').insert({
+        tenant_id: tenantId,
+        action: 'FORCE_PLAN_CHANGE',
+        actor_id: adminId,
+        metadata: { new_tier: newTier }
+    })
+
+    return { success: true }
+}
+
+/**
+ * Extend trial period
+ */
+export async function extendTrial(tenantId: string, days: number, adminId: string) {
+    const adminClient = createAdminClient()
+
+    const newTrialEnd = new Date()
+    newTrialEnd.setDate(newTrialEnd.getDate() + days)
+
+    const { error } = await adminClient
+        .from('tenant_subscriptions')
+        .update({
+            status: 'trialing',
+            trial_end: newTrialEnd.toISOString()
+        })
+        .eq('tenant_id', tenantId)
+
+    if (error) {
+        console.error('[Platform] Error extending trial:', error)
+        return { error: error.message }
+    }
+
+    // Log action
+    await adminClient.from('audit_logs').insert({
+        tenant_id: tenantId,
+        action: 'TRIAL_EXTENDED',
+        actor_id: adminId,
+        metadata: { days, new_trial_end: newTrialEnd.toISOString() }
+    })
+
+    return { success: true }
+}
+
+/**
+ * Get tenant user listing for export
+ */
+export async function getTenantUsers(tenantId: string) {
+    const adminClient = createAdminClient()
+
+    const { data, error } = await adminClient
+        .from('profiles')
+        .select('id, full_name, email, phone, role, points_balance, created_at, last_login')
+        .eq('tenant_id', tenantId)
+        .eq('role', 'member')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('[Platform] Error fetching tenant users:', error)
+        return []
+    }
+
+    return data || []
 }

@@ -7,6 +7,7 @@ import TenantHeader from './components/TenantHeader'
 import SubscriptionCard from './components/SubscriptionCard'
 import UsageOverview from './components/UsageOverview'
 import AuditLogTable from './components/AuditLogTable'
+import TenantActions from './components/TenantActions'
 
 interface PageProps {
     params: Promise<{
@@ -77,6 +78,11 @@ export default async function TenantDetailPage({ params }: PageProps) {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 py-8">
+                {/* Quick Actions */}
+                <div className="mb-8">
+                    <TenantActions tenant={tenantData.tenant} />
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     {/* Subscription Card */}
                     <div className="lg:col-span-2">
