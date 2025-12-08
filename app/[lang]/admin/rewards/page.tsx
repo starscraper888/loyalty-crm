@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createReward } from '@/app/admin/actions'
-import RewardItem from './components/RewardItem'
+import RewardsGrid from './components/RewardsGrid'
 
 export default async function RewardsPage() {
     const supabase = await createClient()
@@ -54,12 +54,8 @@ export default async function RewardsPage() {
                     </div>
                 )}
 
-                {/* List */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {rewards?.map((reward: any) => (
-                        <RewardItem key={reward.id} reward={reward} isManager={isManager} />
-                    ))}
-                </div>
+                {/* Rewards Grid with Search */}
+                <RewardsGrid rewards={rewards || []} isManager={isManager} />
             </div>
         </div>
     )

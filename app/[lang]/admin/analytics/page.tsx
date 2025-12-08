@@ -51,84 +51,155 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Charts Grid */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                     {/* Points Earned Chart */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Points Earned</h2>
-                        <div className="h-80">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+                            <span className="w-2 h-6 bg-green-500 rounded-full"></span>
+                            Points Earned
+                        </h2>
+                        <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={data.dailyMetrics}>
+                                <AreaChart data={data.dailyMetrics} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorEarned" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
                                             <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                    <XAxis dataKey="date" stroke="#9CA3AF" />
-                                    <YAxis stroke="#9CA3AF" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                    <Area type="monotone" dataKey="points_earned" stroke="#10B981" fillOpacity={1} fill="url(#colorEarned)" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="#9CA3AF"
+                                        tick={{ fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        stroke="#9CA3AF"
+                                        tick={{ fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                        labelStyle={{ color: '#9CA3AF', marginBottom: '0.5rem' }}
+                                    />
+                                    <Area type="monotone" dataKey="points_earned" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#colorEarned)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
                     {/* Points Redeemed Chart */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Points Redeemed</h2>
-                        <div className="h-80">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+                            <span className="w-2 h-6 bg-red-500 rounded-full"></span>
+                            Points Redeemed
+                        </h2>
+                        <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={data.dailyMetrics}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                    <XAxis dataKey="date" stroke="#9CA3AF" />
-                                    <YAxis stroke="#9CA3AF" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                    <Bar dataKey="points_redeemed" fill="#EF4444" />
+                                <BarChart data={data.dailyMetrics} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="#9CA3AF"
+                                        tick={{ fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        stroke="#9CA3AF"
+                                        tick={{ fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                        labelStyle={{ color: '#9CA3AF', marginBottom: '0.5rem' }}
+                                        cursor={{ fill: '#374151', opacity: 0.2 }}
+                                    />
+                                    <Bar dataKey="points_redeemed" fill="#EF4444" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
                     {/* Transaction Volume */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Transaction Volume</h2>
-                        <div className="h-80">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+                            <span className="w-2 h-6 bg-blue-500 rounded-full"></span>
+                            Transaction Volume
+                        </h2>
+                        <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data.dailyMetrics}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                    <XAxis dataKey="date" stroke="#9CA3AF" />
-                                    <YAxis stroke="#9CA3AF" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                                    <Line type="monotone" dataKey="transactions" stroke="#3B82F6" strokeWidth={2} />
+                                <LineChart data={data.dailyMetrics} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="#9CA3AF"
+                                        tick={{ fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        stroke="#9CA3AF"
+                                        tick={{ fontSize: 12 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
+                                        labelStyle={{ color: '#9CA3AF', marginBottom: '0.5rem' }}
+                                    />
+                                    <Line type="monotone" dataKey="transactions" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', strokeWidth: 2 }} activeDot={{ r: 6 }} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
                     {/* Summary Stats */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Period Summary</h2>
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+                            <span className="w-2 h-6 bg-purple-500 rounded-full"></span>
+                            Period Summary
+                        </h2>
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                            <div className="flex justify-between items-center p-4 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-800/30 rounded-xl">
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Points Earned</span>
-                                <span className="text-lg font-bold text-green-600 dark:text-green-400">+{data.summary.totalPointsEarned.toLocaleString()}</span>
+                                <div className="text-right">
+                                    <span className="block text-lg font-bold text-green-600 dark:text-green-400">+{data.summary.totalPointsEarned.toLocaleString()}</span>
+                                    <span className="text-xs text-green-600/70 dark:text-green-400/70">Total gained</span>
+                                </div>
                             </div>
-                            <div className="flex justify-between items-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                            <div className="flex justify-between items-center p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/30 rounded-xl">
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Points Redeemed</span>
-                                <span className="text-lg font-bold text-red-600 dark:text-red-400">-{data.summary.totalPointsRedeemed.toLocaleString()}</span>
+                                <div className="text-right">
+                                    <span className="block text-lg font-bold text-red-600 dark:text-red-400">-{data.summary.totalPointsRedeemed.toLocaleString()}</span>
+                                    <span className="text-xs text-red-600/70 dark:text-red-400/70">Total spent</span>
+                                </div>
                             </div>
-                            <div className="flex justify-between items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div className="flex justify-between items-center p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-xl">
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">New Members</span>
-                                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{data.summary.newMembersInPeriod}</span>
+                                <div className="text-right">
+                                    <span className="block text-lg font-bold text-blue-600 dark:text-blue-400">{data.summary.newMembersInPeriod}</span>
+                                    <span className="text-xs text-blue-600/70 dark:text-blue-400/70">Sign ups</span>
+                                </div>
                             </div>
-                            <div className="flex justify-between items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Avg Points/Transaction</span>
-                                <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                                    {data.summary.totalTransactions > 0
-                                        ? Math.round(data.summary.totalPointsEarned / data.summary.totalTransactions)
-                                        : 0}
-                                </span>
+                            <div className="flex justify-between items-center p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl">
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Avg Pts/Transaction</span>
+                                <div className="text-right">
+                                    <span className="block text-lg font-bold text-purple-600 dark:text-purple-400">
+                                        {data.summary.totalTransactions > 0
+                                            ? Math.round(data.summary.totalPointsEarned / data.summary.totalTransactions)
+                                            : 0}
+                                    </span>
+                                    <span className="text-xs text-purple-600/70 dark:text-purple-400/70">Per visit</span>
+                                </div>
                             </div>
                         </div>
                     </div>
