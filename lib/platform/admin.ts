@@ -189,10 +189,20 @@ export async function getTenantDetails(tenantId: string) {
     // Get owner profile
     const { data: owner } = await adminClient
         .from('profiles')
-        .select('id, full_name, email, phone')
+        .select('id, full_name, phone')
         .eq('tenant_id', tenantId)
         .eq('role', 'owner')
         .single()
+
+    // If owner found, get email from auth.users
+    let ownerWithEmail = owner
+    if (owner) {
+        const { data: authUser } = await adminClient.auth.admin.getUserById(owner.id)
+        ownerWithEmail = {
+            ...owner,
+            email: authUser?.user?.email || ''
+        }
+    }
 
     // Get member count
     const { count: memberCount } = await adminClient
@@ -232,7 +242,7 @@ export async function getTenantDetails(tenantId: string) {
         subscription,
         currentUsage,
         usageHistory: usageHistory || [],
-        owner,
+        owner: ownerWithEmail,
         memberCount: memberCount || 0,
         auditLogs: auditLogs || [],
         tierLimits,
@@ -570,17 +580,42 @@ export async function extendTrial(tenantId: string, days: number, adminId: strin
 export async function getTenantUsers(tenantId: string) {
     const adminClient = createAdminClient()
 
-    const { data, error } = await adminClient
+    // Get all member profiles for this tenant
+    const { data: profiles, error } = await adminClient
         .from('profiles')
-        .select('id, full_name, email, phone, role, points_balance, created_at, last_login')
+        .select('id, full_name, phone, points_balance, created_at')
         .eq('tenant_id', tenantId)
         .eq('role', 'member')
         .order('created_at', { ascending: false })
 
-    if (error) {
+    if (error || !profiles) {
         console.error('[Platform] Error fetching tenant users:', error)
         return []
     }
 
-    return data || []
+    console.log(`[Platform] Found ${profiles.length} members for tenant ${tenantId}`)
+
+    // Enrich with email from auth.users
+    const enrichedUsers = await Promise.all(
+        profiles.map(async (profile) => {
+            try {
+                const { data: authUser, error: authError } = await adminClient.auth.admin.getUserById(profile.id)
+                if (authError) {
+                    console.error(`[Platform] Error fetching user ${profile.id}:`, authError)
+                }
+                return {
+                    ...profile,
+                    email: authUser?.user?.email || 'No email'
+                }
+            } catch (err) {
+                console.error(`[Platform] Exception fetching user ${profile.id}:`, err)
+                return {
+                    ...profile,
+                    email: 'Error'
+                }
+            }
+        })
+    )
+
+    return enrichedUsers
 }

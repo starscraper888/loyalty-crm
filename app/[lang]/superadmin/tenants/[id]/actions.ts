@@ -149,16 +149,14 @@ export async function exportTenantUsers(tenantId: string) {
     const users = await getTenantUsers(tenantId)
 
     // Convert to CSV
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'Role', 'Points Balance', 'Created At', 'Last Login']
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'Points Balance', 'Created At']
     const rows = users.map(u => [
         u.id,
         u.full_name || '',
         u.email || '',
         u.phone || '',
-        u.role,
         u.points_balance || 0,
-        u.created_at,
-        u.last_login || ''
+        u.created_at
     ])
 
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
