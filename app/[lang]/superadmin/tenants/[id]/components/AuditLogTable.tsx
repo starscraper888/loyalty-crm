@@ -40,7 +40,8 @@ export default function AuditLogTable({ logs }: AuditLogTableProps) {
 
     return (
         <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-slate-700/50">
                         <tr className="text-left text-sm text-slate-400">
@@ -89,6 +90,43 @@ export default function AuditLogTable({ logs }: AuditLogTableProps) {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-slate-700">
+                {logs.map((log) => (
+                    <div key={log.id} className="p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className={`text-sm font-medium ${getActionColor(log.action)}`}>
+                                        {getActionLabel(log.action)}
+                                    </span>
+                                    {log.status === 'success' ? (
+                                        <CheckCircle className="w-4 h-4 text-green-400" />
+                                    ) : log.status === 'failure' ? (
+                                        <XCircle className="w-4 h-4 text-red-400" />
+                                    ) : (
+                                        <div className="w-4 h-4 rounded-full bg-slate-600" />
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-400">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{new Date(log.created_at).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-300">
+                            <User className="w-4 h-4 text-slate-500" />
+                            <span className="text-xs">{log.actor_id ? log.actor_id.substring(0, 8) + '...' : 'System'}</span>
+                        </div>
+                        {log.metadata && (
+                            <div className="text-xs text-slate-400 bg-slate-900/50 rounded p-2 overflow-hidden">
+                                {JSON.stringify(log.metadata).substring(0, 80)}...
+                            </div>
+                        )}
+                    </div>
+                ))}
             </div>
 
             {logs.length >= 50 && (
