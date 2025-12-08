@@ -176,22 +176,22 @@ export default function TenantTable({ tenants }: { tenants: Tenant[] }) {
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-block px-2 py-1 text-xs rounded-full ${tenant.tier === 'enterprise'
-                                            ? 'bg-purple-500/20 text-purple-300'
-                                            : tenant.tier === 'pro'
-                                                ? 'bg-blue-500/20 text-blue-300'
-                                                : 'bg-gray-500/20 text-gray-300'
+                                        ? 'bg-purple-500/20 text-purple-300'
+                                        : tenant.tier === 'pro'
+                                            ? 'bg-blue-500/20 text-blue-300'
+                                            : 'bg-gray-500/20 text-gray-300'
                                         }`}>
                                         {tenant.tier?.toUpperCase() || 'NO PLAN'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${tenant.subscription_status === 'active'
+                                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${tenant.status === 'suspended'
+                                        ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                                        : tenant.status === 'active'
                                             ? 'bg-green-500/20 text-green-300'
-                                            : tenant.subscription_status === 'trialing'
-                                                ? 'bg-yellow-500/20 text-yellow-300'
-                                                : 'bg-red-500/20 text-red-300'
+                                            : 'bg-gray-500/20 text-gray-300'
                                         }`}>
-                                        {tenant.subscription_status || 'inactive'}
+                                        {tenant.status === 'suspended' ? '🚫 Suspended' : tenant.status || 'active'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-slate-300">
