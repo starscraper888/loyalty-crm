@@ -26,6 +26,17 @@ export default async function DashboardPage() {
 
     if (error || !staffProfile) return <div>Unauthorized (No Profile)</div>
 
+    // Check if tenant is suspended
+    const { data: tenant } = await supabase
+        .from('tenants')
+        .select('status')
+        .eq('id', staffProfile.tenant_id)
+        .single()
+
+    if (tenant?.status === 'suspended') {
+        redirect('/en/suspended')
+    }
+
     // 1. Total Members
     const { count: memberCount } = await supabase
         .from('profiles')
