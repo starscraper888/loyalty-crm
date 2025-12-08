@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import AdminNavbar from './components/AdminNavbar'
+import AdminNavbar from '../admin/components/AdminNavbar'
 
-export default async function AdminLayout({
+export default async function SettingsLayout({
     children,
-    params,
+    params
 }: {
     children: React.ReactNode
     params: Promise<{ lang: string }>
@@ -17,8 +17,7 @@ export default async function AdminLayout({
         redirect(`/${lang}/staff/login`)
     }
 
-    // Optional: Check if user is actually an admin
-    // For now, we rely on RLS and page-level checks, but layout check is good UX
+    // Get user profile
     const { data: profile } = await supabase
         .from('profiles')
         .select('role, tenant_id')
@@ -26,30 +25,11 @@ export default async function AdminLayout({
         .single()
 
     if (!profile || !['admin', 'owner', 'manager'].includes(profile.role)) {
-        // Redirect to staff dashboard if they are staff but not admin
-        if (profile?.role === 'staff') {
-            redirect(`/${lang}/staff/dashboard`)
-        }
-        // Otherwise login
         redirect(`/${lang}/staff/login`)
     }
 
-    // Check if tenant is suspended (allow billing page access)
-    const { data: tenant } = await supabase
-        .from('tenants')
-        .select('status')
-        .eq('id', profile.tenant_id)
-        .single()
-
-    // Allow access to billing page even when suspended
-    // This enables users to update payment methods to resolve suspension
-    const isBillingRoute = typeof window === 'undefined'
-        ? false
-        : true // We can't check pathname on server, so we'll handle this differently
-
-    if (tenant?.status === 'suspended') {
-        redirect(`/${lang}/suspended`)
-    }
+    // DON'T check suspension here - allow billing access even when suspended
+    // This is intentional to let users update payment methods
 
     // Check if user is platform admin
     const { isPlatformAdmin } = await import('@/lib/platform/admin')

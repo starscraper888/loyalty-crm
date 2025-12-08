@@ -79,7 +79,7 @@ export default async function SuspendedPage() {
                     )}
 
                     {/* Instructions */}
-                    <div className="bg-slate-700/50 rounded-lg p-6 text-left mb-8">
+                    <div className="bg-slate-700/50 rounded-lg p-6 text-left mb-6">
                         <h3 className="font-semibold text-white mb-3">What happens now?</h3>
                         <ul className="space-y-2 text-slate-300">
                             <li className="flex items-start gap-2">
@@ -95,6 +95,20 @@ export default async function SuspendedPage() {
                                 <span>Staff and members cannot access the system</span>
                             </li>
                         </ul>
+                    </div>
+
+                    {/* Update Payment Method */}
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 mb-6">
+                        <h3 className="font-semibold text-blue-400 mb-3">💳 Resolve Payment Issues</h3>
+                        <p className="text-slate-300 mb-4">
+                            If your account was suspended due to payment issues, you can update your billing information to restore access.
+                        </p>
+                        <a
+                            href="/en/settings/billing"
+                            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                            Manage Billing & Payments
+                        </a>
                     </div>
 
                     {/* Contact Support */}
