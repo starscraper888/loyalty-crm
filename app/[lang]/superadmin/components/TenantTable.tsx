@@ -8,6 +8,8 @@ interface Tenant {
     tenant_id: string
     business_name: string
     tier: string
+    status: string
+    is_developer_mode: boolean
     subscription_status: string
     owner_name: string
     owner_email: string
