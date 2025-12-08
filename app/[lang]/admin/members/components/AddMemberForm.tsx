@@ -74,22 +74,23 @@ export default function AddMemberForm() {
                         />
                     </div>
 
-                    {/* Password only for Staff+ */}
-                    {isStaffOrHigher && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Password (Required) <span className="text-xs font-normal text-gray-500">(Min 8 chars, 1 number, 1 special)</span>
-                            </label>
-                            <input
-                                name="password"
-                                type="text"
-                                placeholder="SecurePassword123!"
-                                required
-                                minLength={8}
-                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-                            />
-                        </div>
-                    )}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Password {isStaffOrHigher ? '(Required)' : '(Optional - for member login)'}
+                        </label>
+                        <input
+                            name="password"
+                            type="text"
+                            placeholder={isStaffOrHigher ? "SecurePassword123!" : "Leave blank if no login needed"}
+                            required={isStaffOrHigher}
+                            minLength={8}
+                            className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                            {isStaffOrHigher ? 'Min 8 chars' : 'Set password to enable member login'}
+                        </p>
+                    </div>
+
 
                     {/* Points only for Members (usually staff don't need initial points, but keeping it optional) */}
                     {!isStaffOrHigher && (
