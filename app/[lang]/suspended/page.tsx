@@ -127,13 +127,23 @@ export default async function SuspendedPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="text-center mt-6">
-                    <a
-                        href="/en"
-                        className="text-slate-400 hover:text-white transition-colors text-sm"
-                    >
-                        ← Return to Homepage
-                    </a>
+                <div className="text-center mt-6 space-y-3">
+                    <form action="/auth/signout" method="post">
+                        <button
+                            type="submit"
+                            className="w-full sm:w-auto px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                        >
+                            Sign Out
+                        </button>
+                    </form>
+                    <div>
+                        <a
+                            href="/en"
+                            className="text-slate-400 hover:text-white transition-colors text-sm"
+                        >
+                            ← Return to Homepage
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
