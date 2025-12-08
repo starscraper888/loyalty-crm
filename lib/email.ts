@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export interface WelcomeEmailData {
     memberName: string
@@ -26,7 +26,7 @@ export interface RedemptionEmailData {
 }
 
 export async function sendWelcomeEmail(data: WelcomeEmailData) {
-    if (!process.env.RESEND_API_KEY) {
+    if (!resend || !process.env.RESEND_API_KEY) {
         console.log('Resend API key not configured, skipping email')
         return { success: false, skipped: true }
     }
@@ -73,7 +73,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
 }
 
 export async function sendPointsEarnedEmail(data: PointsEarnedData) {
-    if (!process.env.RESEND_API_KEY) {
+    if (!resend || !process.env.RESEND_API_KEY) {
         console.log('Resend API key not configured, skipping email')
         return { success: false, skipped: true }
     }
@@ -121,7 +121,7 @@ export async function sendPointsEarnedEmail(data: PointsEarnedData) {
 }
 
 export async function sendRedemptionEmail(data: RedemptionEmailData) {
-    if (!process.env.RESEND_API_KEY) {
+    if (!resend || !process.env.RESEND_API_KEY) {
         console.log('Resend API key not configured, skipping email')
         return { success: false, skipped: true }
     }

@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     // We try to find by phone first
     let { data: member } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, full_name, email')
         .eq('phone', phone)
         .eq('tenant_id', staffProfile.tenant_id)
         .single()
