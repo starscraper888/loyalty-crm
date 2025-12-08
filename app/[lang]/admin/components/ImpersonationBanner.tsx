@@ -22,11 +22,11 @@ export default function ImpersonationBanner() {
         // Clear impersonation cookie
         document.cookie = 'impersonation_mode=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
 
-        // Sign out and redirect
+        // Sign out and redirect to superadmin dashboard
         const { createClient } = await import('@/lib/supabase/client')
         const supabase = createClient()
         await supabase.auth.signOut()
-        router.push('/en/staff/login')
+        router.push('/en/superadmin')
     }
 
     if (!isImpersonating) return null
