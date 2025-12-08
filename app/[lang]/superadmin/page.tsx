@@ -150,6 +150,13 @@ export default async function SuperadminDashboard() {
                         <h3 className="text-lg font-semibold text-white mb-2">📊 Revenue Analytics</h3>
                         <p className="text-sm text-slate-300">View detailed MRR, growth metrics, and revenue trends</p>
                     </Link>
+                    <Link
+                        href="/en/superadmin/audit"
+                        className="p-6 bg-gradient-to-br from-blue-600/20 to-purple-600/20 hover:from-blue-600/30 hover:to-purple-600/30 border border-blue-500/20 rounded-xl transition-all"
+                    >
+                        <h3 className="text-lg font-semibold text-white mb-2">🛡️ Audit Logs</h3>
+                        <p className="text-sm text-slate-300">Track all platform admin actions and changes</p>
+                    </Link>
                 </div>
             </div>
         </div>
