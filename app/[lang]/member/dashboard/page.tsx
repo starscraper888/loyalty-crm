@@ -1,6 +1,9 @@
 import { getMyProfile, getMyTransactions } from '@/app/member/actions'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { getMemberTier, getNextTier, getTierProgress, getPointsToNextTier } from '@/lib/tiers'
+import TierBadge from '@/components/TierBadge'
+import TierProgress from '@/components/TierProgress'
 
 export default async function MemberDashboardPage({ params }: { params: Promise<{ lang: string }> }) {
     const { lang } = await params
@@ -13,6 +16,12 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
 
     const profile = profileResult.profile!
     const transactions = transactionsResult.transactions || []
+
+    // Get tier information
+    const tier = await getMemberTier(profile.id)
+    const nextTier = tier ? await getNextTier(tier.name) : null
+    const progress = tier && profile.lifetime_points ? getTierProgress(profile.lifetime_points, tier, nextTier) : 0
+    const pointsToNext = tier ? getPointsToNextTier(profile.lifetime_points || 0, nextTier) : 0
 
     // Calculate stats
     const totalEarned = transactions
@@ -35,16 +44,21 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
         <div className="px-4 sm:px-0">
             {/* Welcome Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Welcome back, {profile.full_name}!
-                </h1>
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                    Member since {new Date(profile.created_at).toLocaleDateString('en-GB', {
-                        timeZone: 'Asia/Singapore',
-                        year: 'numeric',
-                        month: 'long'
-                    })}
-                </p>
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                            Welcome back, {profile.full_name}!
+                        </h1>
+                        <p className="mt-2 text-gray-600 dark:text-gray-400">
+                            Member since {new Date(profile.created_at).toLocaleDateString('en-GB', {
+                                timeZone: 'Asia/Singapore',
+                                year: 'numeric',
+                                month: 'long'
+                            })}
+                        </p>
+                    </div>
+                    {tier && <TierBadge tier={tier} size="lg" />}
+                </div>
             </div>
 
             {/* Hero - Points Balance */}
@@ -55,6 +69,19 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
                     <p className="text-2xl opacity-90">points</p>
                 </div>
             </div>
+
+            {/* Tier Progress */}
+            {tier && (
+                <div className="mb-8">
+                    <TierProgress
+                        tier={tier}
+                        nextTier={nextTier}
+                        lifetimePoints={profile.lifetime_points || 0}
+                        progress={progress}
+                        pointsToNext={pointsToNext}
+                    />
+                </div>
+            )}
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

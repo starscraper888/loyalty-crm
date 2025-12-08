@@ -13,7 +13,7 @@ export async function getMyProfile() {
 
     const { data: profile, error } = await supabase
         .from('profiles')
-        .select('id, full_name, phone, email, points_balance, created_at, role')
+        .select('id, full_name, phone, email, points_balance, lifetime_points, tier_id, created_at, role')
         .eq('id', user.id)
         .single()
 
