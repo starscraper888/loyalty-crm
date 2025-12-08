@@ -140,6 +140,17 @@ export default async function SuperadminDashboard() {
 
                 {/* Tenants Table */}
                 <TenantTable tenants={tenants} />
+
+                {/* Quick Links */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Link
+                        href="/en/superadmin/revenue"
+                        className="p-6 bg-gradient-to-br from-green-600/20 to-blue-600/20 hover:from-green-600/30 hover:to-blue-600/30 border border-green-500/20 rounded-xl transition-all"
+                    >
+                        <h3 className="text-lg font-semibold text-white mb-2">📊 Revenue Analytics</h3>
+                        <p className="text-sm text-slate-300">View detailed MRR, growth metrics, and revenue trends</p>
+                    </Link>
+                </div>
             </div>
         </div>
     )
