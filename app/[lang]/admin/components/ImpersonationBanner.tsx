@@ -1,41 +1,35 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { LogOut, Shield } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function ImpersonationBanner() {
-    const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
+    const [isImpersonating, setIsImpersonating] = useState(false)
     const router = useRouter()
 
     useEffect(() => {
-        async function checkPlatformAdmin() {
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
+        // Check for impersonation cookie
+        const impersonationMode = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('impersonation_mode='))
+            ?.split('=')[1]
 
-            if (!user) return
-
-            // Check if current user is platform admin
-            const { data: adminCheck } = await supabase
-                .from('platform_admins')
-                .select('id')
-                .eq('user_id', user.id)
-                .single()
-
-            setIsPlatformAdmin(!!adminCheck)
-        }
-
-        checkPlatformAdmin()
+        setIsImpersonating(impersonationMode === 'true')
     }, [])
 
     const handleExitImpersonation = async () => {
+        // Clear impersonation cookie
+        document.cookie = 'impersonation_mode=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+
+        // Sign out and redirect
+        const { createClient } = await import('@/lib/supabase/client')
         const supabase = createClient()
         await supabase.auth.signOut()
         router.push('/en/staff/login')
     }
 
-    if (!isPlatformAdmin) return null
+    if (!isImpersonating) return null
 
     return (
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 shadow-lg z-50">

@@ -72,7 +72,7 @@ export async function GET(request: Request) {
         }
 
         // 7. Redirect to auth confirm with the hashed token (auto-login)
-        const confirmUrl = `${origin}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=magiclink&next=/en/admin/dashboard`
+        const confirmUrl = `${origin}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=magiclink&next=/en/admin/dashboard&impersonate=true`
         return NextResponse.redirect(confirmUrl)
 
     } catch (error) {
