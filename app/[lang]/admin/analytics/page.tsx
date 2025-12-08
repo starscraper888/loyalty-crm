@@ -19,7 +19,17 @@ export default function AnalyticsPage() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h1>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Last updated: {new Date().toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </p>
+                    </div>
 
                     <select
                         value={range}
@@ -55,10 +65,15 @@ export default function AnalyticsPage() {
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                     {/* Points Earned Chart */}
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-                        <h2 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
-                            <span className="w-2 h-6 bg-green-500 rounded-full"></span>
-                            Points Earned
-                        </h2>
+                        <div className="mb-4">
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <span className="w-2 h-6 bg-green-500 rounded-full"></span>
+                                Points Earned
+                            </h2>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 ml-4 mt-1">
+                                {range === '7d' ? 'Last 7 days' : 'Last 30 days'}
+                            </p>
+                        </div>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={data.dailyMetrics} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
