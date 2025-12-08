@@ -28,8 +28,8 @@ export async function impersonateTenant(tenantId: string) {
         return { error: result.error }
     }
 
-    // Return the impersonation URL
-    return { success: true, url: `/impersonate?token=${result.token}` }
+    // Return the impersonation URL with language prefix
+    return { success: true, url: `/en/impersonate?token=${result.token}` }
 }
 
 export async function suspendTenantAction(tenantId: string, confirmPhrase: string, reason: string) {
