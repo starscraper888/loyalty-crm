@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminNavbar from './components/AdminNavbar'
+import ImpersonationBanner from './components/ImpersonationBanner'
 
 export default async function AdminLayout({
     children,
@@ -34,18 +35,12 @@ export default async function AdminLayout({
         redirect(`/${lang}/staff/login`)
     }
 
-    // Check if tenant is suspended (allow billing page access)
+    // Check if tenant is suspended (get tenant_id from same profile query)
     const { data: tenant } = await supabase
         .from('tenants')
         .select('status')
         .eq('id', profile.tenant_id)
         .single()
-
-    // Allow access to billing page even when suspended
-    // This enables users to update payment methods to resolve suspension
-    const isBillingRoute = typeof window === 'undefined'
-        ? false
-        : true // We can't check pathname on server, so we'll handle this differently
 
     if (tenant?.status === 'suspended') {
         redirect(`/${lang}/suspended`)
@@ -57,6 +52,7 @@ export default async function AdminLayout({
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <ImpersonationBanner />
             <AdminNavbar email={user.email} role={profile?.role} isPlatformAdmin={isSuper} />
             {children}
         </div>
