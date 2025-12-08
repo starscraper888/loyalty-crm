@@ -7,10 +7,13 @@ export default async function MembersPage() {
     const supabase = await createClient()
     const adminSupabase = createAdminClient()
 
-    // Fetch profiles
+    // Fetch profiles with tier information
     const { data: members } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+            *,
+            tier:member_tiers(id, name, color, icon)
+        `)
         .order('created_at', { ascending: false })
 
     // Fetch auth users to get emails

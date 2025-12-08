@@ -4,6 +4,7 @@ import "../globals.css";
 import { ThemeProvider } from '@/components/ThemeProvider'
 import CookieConsent from '@/components/CookieConsent'
 import Footer from '@/components/Footer'
+import PWARegistration from '@/components/PWARegistration'
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -46,6 +47,7 @@ export default async function RootLayout({
             <Footer />
           </div>
           <CookieConsent />
+          <PWARegistration />
         </ThemeProvider>
       </body>
     </html>
