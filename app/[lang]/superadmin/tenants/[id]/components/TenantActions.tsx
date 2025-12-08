@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { UserCog, Ban, PlayCircle, Download } from 'lucide-react'
 import { impersonateTenant, suspendTenantAction, resumeTenantAction, exportTenantUsers } from '../actions'
-import ConfirmationModal from './ConfirmationModal'
 
 interface TenantActionsProps {
     tenant: any
@@ -12,6 +11,7 @@ interface TenantActionsProps {
 export default function TenantActions({ tenant }: TenantActionsProps) {
     const [showSuspendModal, setShowSuspendModal] = useState(false)
     const [suspensionReason, setSuspensionReason] = useState('')
+    const [confirmPhrase, setConfirmPhrase] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
@@ -39,14 +39,20 @@ export default function TenantActions({ tenant }: TenantActionsProps) {
             return
         }
 
+        if (confirmPhrase !== 'SUSPEND') {
+            setMessage({ type: 'error', text: 'Please type SUSPEND to confirm' })
+            return
+        }
+
         setIsLoading(true)
-        const result = await suspendTenantAction(tenant.id, 'SUSPEND', suspensionReason)
+        const result = await suspendTenantAction(tenant.id, confirmPhrase, suspensionReason)
 
         if (result.error) {
             setMessage({ type: 'error', text: result.error })
         } else {
             setMessage({ type: 'success', text: 'Tenant suspended successfully' })
             setSuspensionReason('')
+            setConfirmPhrase('')
         }
 
         setIsLoading(false)
@@ -70,6 +76,8 @@ export default function TenantActions({ tenant }: TenantActionsProps) {
 
     const handleExport = async () => {
         setIsLoading(true)
+        setMessage(null)
+
         const result = await exportTenantUsers(tenant.id)
 
         if (!result.success) {
@@ -92,28 +100,29 @@ export default function TenantActions({ tenant }: TenantActionsProps) {
     const isSuspended = tenant.status === 'suspended'
 
     return (
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-            <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
+        <div className="w-full bg-slate-800 rounded-xl p-6 border border-slate-700">
+            <h2 className="text-xl font-bold text-white mb-6">Quick Actions</h2>
 
             {/* Message */}
             {message && (
-                <div className={`mb-4 p-3 rounded-lg ${message.type === 'success'
-                    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                <div className={`mb-4 p-3 rounded-lg text-sm ${message.type === 'success'
+                    ? 'bg-green-500/10 border border-green-500/20 text-green-300'
+                    : 'bg-red-500/10 border border-red-500/20 text-red-300'
                     }`}>
                     {message.text}
                 </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* Action Buttons - Simplified Layout */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Impersonate */}
                 <button
                     onClick={handleImpersonate}
                     disabled={isLoading}
-                    className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <UserCog className="w-5 h-5" />
-                    Impersonate
+                    <span>Impersonate</span>
                 </button>
 
                 {/* Suspend / Resume */}
@@ -121,59 +130,62 @@ export default function TenantActions({ tenant }: TenantActionsProps) {
                     <button
                         onClick={handleResume}
                         disabled={isLoading}
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <PlayCircle className="w-5 h-5" />
-                        Resume
+                        <span>Resume Account</span>
                     </button>
                 ) : (
                     <button
                         onClick={() => setShowSuspendModal(true)}
                         disabled={isLoading}
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Ban className="w-5 h-5" />
-                        Suspend
+                        <span>Suspend Account</span>
                     </button>
                 )}
 
-                {/* Export Users */}
+                {/* Export Users - Full Width */}
                 <button
                     onClick={handleExport}
                     disabled={isLoading}
-                    className="col-span-2 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                    className="w-full sm:col-span-2 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Download className="w-5 h-5" />
-                    Export User List (CSV)
+                    <span>Export Members (CSV)</span>
                 </button>
             </div>
 
-            {/* Suspend Modal with Reason Input */}
+            {/* Suspend Modal */}
             {showSuspendModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="bg-slate-800 rounded-xl border border-slate-700 max-w-md w-full mx-4 p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">Suspend Tenant</h3>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="bg-slate-800 rounded-xl border-2 border-red-500/40 max-w-md w-full mx-4 p-6 shadow-2xl">
+                        <h3 className="text-2xl font-bold text-white mb-6">Suspend Tenant</h3>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-slate-400 mb-2">
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">
                                 Suspension Reason
                             </label>
                             <textarea
                                 value={suspensionReason}
                                 onChange={(e) => setSuspensionReason(e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-red-500"
+                                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                 placeholder="e.g., Non-payment, Terms violation, etc."
                                 rows={3}
+                                autoFocus
                             />
                         </div>
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-slate-400 mb-2">
-                                Type <span className="font-bold text-white">SUSPEND</span> to confirm
+                        <div className="mb-6">
+                            <label className="block text-sm font-semibold text-slate-300 mb-2">
+                                Type <span className="font-bold text-red-400">SUSPEND</span> to confirm
                             </label>
                             <input
                                 type="text"
-                                className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white"
+                                value={confirmPhrase}
+                                onChange={(e) => setConfirmPhrase(e.target.value.toUpperCase())}
+                                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                 placeholder="SUSPEND"
                             />
                         </div>
@@ -183,16 +195,19 @@ export default function TenantActions({ tenant }: TenantActionsProps) {
                                 onClick={() => {
                                     setShowSuspendModal(false)
                                     setSuspensionReason('')
+                                    setConfirmPhrase('')
                                 }}
-                                className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
+                                disabled={isLoading}
+                                className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleSuspend}
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                disabled={isLoading || confirmPhrase !== 'SUSPEND' || !suspensionReason.trim()}
+                                className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Suspend
+                                {isLoading ? 'Suspending...' : 'Suspend'}
                             </button>
                         </div>
                     </div>
