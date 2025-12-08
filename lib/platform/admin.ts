@@ -195,13 +195,13 @@ export async function getTenantDetails(tenantId: string) {
         .single()
 
     // If owner found, get email from auth.users
-    let ownerWithEmail = owner
+    let ownerWithEmail: any = owner
     if (owner) {
         const { data: authUser } = await adminClient.auth.admin.getUserById(owner.id)
         ownerWithEmail = {
             ...owner,
             email: authUser?.user?.email || ''
-        }
+        } as any
     }
 
     // Get member count
