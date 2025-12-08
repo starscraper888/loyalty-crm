@@ -15,7 +15,7 @@ export interface Member {
     created_at: string
 }
 
-export default function MemberItem({ member, isManager }: { member: Member, isManager?: boolean }) {
+export default function MemberItem({ member, isManager, isMobileCard }: { member: Member, isManager?: boolean, isMobileCard?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -124,6 +124,71 @@ export default function MemberItem({ member, isManager }: { member: Member, isMa
         )
     }
 
+    // Mobile Card View
+    if (isMobileCard) {
+        return (
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                        <Link href={`/en/admin/members/${member.id}`} className="text-base font-bold text-gray-900 dark:text-white hover:text-blue-600">
+                            {member.full_name || 'N/A'}
+                        </Link>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 capitalize mt-1">
+                            {member.role}
+                        </p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            {member.points_balance} pts
+                        </p>
+                    </div>
+                </div>
+
+                <div className="space-y-1 text-sm">
+                    {member.email && (
+                        <p className="text-gray-600 dark:text-gray-300">
+                            <span className="font-medium">✉️ </span>
+                            {member.email}
+                        </p>
+                    )}
+                    <p className="text-gray-600 dark:text-gray-300">
+                        <span className="font-medium">📱 </span>
+                        {member.phone}
+                    </p>
+                </div>
+
+                {!isManager && (
+                    <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            onClick={() => setShowDeleteDialog(true)}
+                            className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                )}
+
+                <ConfirmDialog
+                    open={showDeleteDialog}
+                    title="Delete Member?"
+                    message={`Are you sure you want to delete ${member.full_name}? This will remove their login and all point transaction history. This action cannot be undone.`}
+                    confirmText="Delete"
+                    cancelText="Cancel"
+                    danger={true}
+                    onConfirm={handleDelete}
+                    onCancel={() => setShowDeleteDialog(false)}
+                />
+            </div>
+        )
+    }
+
+    // Desktop Table Row View
     return (
         <div className="group grid grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200">
             <div className="col-span-3 text-sm font-medium group-hover:font-bold text-gray-900 dark:text-white truncate transition-all" title={member.full_name}>

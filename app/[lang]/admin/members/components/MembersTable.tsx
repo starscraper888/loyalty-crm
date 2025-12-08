@@ -52,7 +52,7 @@ export default function MembersTable({ initialMembers, isManager, currentUserRol
         }
 
         return items
-    }, [initialMembers, search, roleFilter, sortConfig])
+    }, [initialMembers, search, roleFilter, sortConfig, currentUserRole])
 
     // Sort Handler
     const handleSort = (key: keyof Member) => {
@@ -78,72 +78,101 @@ export default function MembersTable({ initialMembers, isManager, currentUserRol
             ].join(','))
         ].join('\n')
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', 'members_export.csv')
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+        const blob = new Blob([csvContent], { type: 'text/csv' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `members-${new Date().toISOString().split('T')[0]}.csv`
+        a.click()
     }
 
     return (
         <div className="space-y-4">
-            {/* Controls */}
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-                <div className="flex gap-4 w-full md:w-auto">
-                    <input
-                        type="text"
-                        placeholder="Search name, email, phone..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white w-full md:w-64"
-                    />
+            {/* Filters & Search */}
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                <input
+                    type="text"
+                    placeholder="🔍 Search by name, email, or phone..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white flex-1 md:max-w-md"
+                />
+
+                <div className="flex gap-2 flex-wrap">
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                        className="px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     >
                         <option value="all">All Roles</option>
-                        <option value="member">Member</option>
+                        <option value="member">Members</option>
                         <option value="staff">Staff</option>
-                        <option value="manager">Manager</option>
-                        <option value="admin">Admin</option>
+                        <option value="manager">Managers</option>
+                        {currentUserRole === 'owner' && <option value="owner">Owners</option>}
                     </select>
+
+                    <button
+                        onClick={handleExport}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                    >
+                        📥 Export CSV
+                    </button>
                 </div>
-                <button
-                    onClick={handleExport}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center gap-2"
-                >
-                    <span>Download CSV</span>
-                </button>
             </div>
 
-            {/* Row Count */}
-            <div className="text-sm text-slate-600 dark:text-slate-400">
+            {/* Count */}
+            <p className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {filteredMembers.length} of {initialMembers.length} members
+            </p>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+                <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th
+                                onClick={() => handleSort('full_name')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                            >
+                                Name {sortConfig?.key === 'full_name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Contact
+                            </th>
+                            <th
+                                onClick={() => handleSort('points_balance')}
+                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                            >
+                                Points {sortConfig?.key === 'points_balance' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {filteredMembers.map((member) => (
+                            <MemberItem key={member.id} member={member} isManager={isManager} />
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
-            {/* Table Header with Sort */}
-            <div className="bg-gray-800 text-white p-4 rounded-t-xl grid grid-cols-12 gap-4 font-semibold text-sm uppercase tracking-wider">
-                <div className="col-span-3 cursor-pointer hover:text-blue-300" onClick={() => handleSort('full_name')}>Name {sortConfig?.key === 'full_name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</div>
-                <div className="col-span-3 cursor-pointer hover:text-blue-300" onClick={() => handleSort('email')}>Email {sortConfig?.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</div>
-                <div className="col-span-2">Phone</div>
-                <div className="col-span-1 cursor-pointer hover:text-blue-300" onClick={() => handleSort('role')}>Role {sortConfig?.key === 'role' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</div>
-                <div className="col-span-1 cursor-pointer hover:text-blue-300" onClick={() => handleSort('points_balance')}>Points {sortConfig?.key === 'points_balance' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</div>
-                <div className="col-span-2 text-right">Actions</div>
-            </div>
-
-            {/* List */}
-            <div className="space-y-2">
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
                 {filteredMembers.map((member) => (
-                    <MemberItem key={member.id} member={member} isManager={isManager} />
+                    <MemberItem key={member.id} member={member} isManager={isManager} isMobileCard />
                 ))}
-                {filteredMembers.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">No members found matching your criteria.</div>
-                )}
             </div>
+
+            {filteredMembers.length === 0 && (
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl">
+                    <p className="text-gray-500 dark:text-gray-400">No members found matching your filters.</p>
+                </div>
+            )}
         </div>
     )
 }
