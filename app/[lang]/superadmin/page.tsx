@@ -41,9 +41,19 @@ export default async function SuperadminDashboard() {
             {/* Header */}
             <div className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
                 <div className="max-w-7xl mx-auto px-6 py-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-white">Platform Admin</h1>
-                        <p className="text-slate-400 text-sm">Superadmin Dashboard</p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold text-white">Platform Admin</h1>
+                            <p className="text-slate-400 text-sm">Superadmin Dashboard</p>
+                        </div>
+                        <form action="/auth/signout" method="post">
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                            >
+                                Sign Out
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

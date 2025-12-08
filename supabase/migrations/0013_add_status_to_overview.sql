@@ -1,4 +1,5 @@
 -- Add status column to platform_tenant_overview view with correct column names
+-- NOTE: Emails are in auth.users, not profiles
 DROP VIEW IF EXISTS platform_tenant_overview;
 
 CREATE VIEW platform_tenant_overview AS
@@ -16,7 +17,7 @@ SELECT
     0 as members_count,
     0 as transactions_count,
     p.full_name as owner_name,
-    p.email as owner_email
+    '' as owner_email
 FROM tenants t
 LEFT JOIN tenant_subscriptions ts ON t.id = ts.tenant_id
 LEFT JOIN profiles p ON t.id = p.tenant_id AND p.role = 'owner'
