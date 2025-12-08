@@ -6,6 +6,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 
 export default function AddMemberForm() {
     const [error, setError] = useState<string | null>(null)
+    const [success, setSuccess] = useState(false)
     const [role, setRole] = useState('member')
     const formRef = useRef<HTMLFormElement>(null)
 
@@ -19,6 +20,8 @@ export default function AddMemberForm() {
         } else {
             formRef.current?.reset()
             setRole('member') // Reset role to default
+            setSuccess(true)
+            setTimeout(() => setSuccess(false), 3000)
         }
     }
 
@@ -97,6 +100,7 @@ export default function AddMemberForm() {
 
                 <div className="flex justify-end items-center gap-4 pt-2">
                     {error && <p className="text-red-500 text-sm">{error}</p>}
+                    {success && <p className="text-green-600 text-sm font-medium">Successfully added!</p>}
                     <SubmitButton
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                         loadingText={`Adding ${role}...`}
