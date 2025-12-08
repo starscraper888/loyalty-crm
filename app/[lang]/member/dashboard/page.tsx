@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { getMemberTier, getNextTier, getTierProgress, getPointsToNextTier } from '@/lib/tiers'
 import TierBadge from '@/components/TierBadge'
 import TierProgress from '@/components/TierProgress'
+import OnboardingTour from '@/components/OnboardingTour'
+import { memberTourSteps } from '@/lib/tour-steps'
 
 export default async function MemberDashboardPage({ params }: { params: Promise<{ lang: string }> }) {
     const { lang } = await params
@@ -42,6 +44,8 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
 
     return (
         <div className="px-4 sm:px-0">
+            <OnboardingTour steps={memberTourSteps} tourKey="member-dashboard" />
+
             {/* Welcome Header */}
             <div className="mb-8">
                 <div className="flex items-center justify-between flex-wrap gap-4">
@@ -57,12 +61,12 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
                             })}
                         </p>
                     </div>
-                    {tier && <TierBadge tier={tier} size="lg" />}
+                    {tier && <div data-tour="tier-badge"><TierBadge tier={tier} size="lg" /></div>}
                 </div>
             </div>
 
             {/* Hero - Points Balance */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8">
+            <div data-tour="points-balance" className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8">
                 <div className="text-white">
                     <p className="text-lg opacity-90">Current Balance</p>
                     <h2 className="text-6xl font-bold mt-2">{profile.points_balance}</h2>
@@ -156,6 +160,7 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link
                     href={`/${lang}/member/rewards`}
+                    data-tour="browse-rewards"
                     className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow border border-gray-100 dark:border-gray-700 hover:border-blue-500 transition-colors text-center"
                 >
                     <div className="text-4xl mb-2">🎁</div>
@@ -165,6 +170,7 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
 
                 <Link
                     href={`/${lang}/member/qr-code`}
+                    data-tour="qr-code"
                     className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow border border-gray-100 dark:border-gray-700 hover:border-blue-500 transition-colors text-center"
                 >
                     <div className="text-4xl mb-2">📱</div>

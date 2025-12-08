@@ -1,0 +1,55 @@
+{
+    "name": "Loyalty CRM",
+    "short_name": "Loyalty",
+    "description": "WhatsApp-first Loyalty & Rewards Program",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3b82f6",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "business",
+        "loyalty",
+        "rewards"
+    ],
+    "shortcuts": [
+        {
+            "name": "My Points",
+            "short_name": "Points",
+            "description": "View your points balance",
+            "url": "/en/member/dashboard",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Rewards",
+            "short_name": "Rewards",
+            "description": "Browse available rewards",
+            "url": "/en/member/rewards",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}
