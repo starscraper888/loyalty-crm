@@ -78,6 +78,9 @@ BEGIN
 END;
 $$;
 
+-- Drop trigger if exists to make migration idempotent
+DROP TRIGGER IF EXISTS trigger_track_lifetime_points ON points_ledger;
+
 CREATE TRIGGER trigger_track_lifetime_points
 AFTER INSERT ON points_ledger
 FOR EACH ROW

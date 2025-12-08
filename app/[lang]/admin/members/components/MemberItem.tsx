@@ -13,6 +13,12 @@ export interface Member {
     points_balance: number
     role: string
     created_at: string
+    tier?: {
+        id: string
+        name: string
+        color: string
+        icon: string
+    }
 }
 
 export default function MemberItem({ member, isManager, isMobileCard }: { member: Member, isManager?: boolean, isMobileCard?: boolean }) {
@@ -190,24 +196,47 @@ export default function MemberItem({ member, isManager, isMobileCard }: { member
 
     // Desktop Table Row View
     return (
-        <div className="group grid grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200">
-            <div className="col-span-3 text-sm font-medium group-hover:font-bold text-gray-900 dark:text-white truncate transition-all" title={member.full_name}>
-                <Link href={`/en/admin/members/${member.id}`} className="hover:underline hover:text-blue-600">
-                    {member.full_name || 'N/A'}
-                </Link>
-            </div>
-            <div className="col-span-3 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold truncate transition-all" title={member.email}>{member.email || 'N/A'}</div>
-            <div className="col-span-2 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold truncate transition-all">{member.phone}</div>
-            <div className="col-span-1 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold capitalize transition-all">{member.role}</div>
-            <div className="col-span-1 text-sm text-gray-500 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white group-hover:font-semibold transition-all">{member.points_balance}</div>
-            <div className="col-span-2 text-right text-sm font-medium">
-                {!isManager && (
-                    <>
-                        <button onClick={() => setIsEditing(true)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
-                        <button onClick={() => setShowDeleteDialog(true)} className="text-red-600 hover:text-red-900">Delete</button>
-                    </>
-                )}
-            </div>
+        <>
+            <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                    <Link href={`/en/admin/members/${member.id}`} className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600">
+                        {member.full_name || 'N/A'}
+                    </Link>
+                </td>
+                <td className="px-6 py-4">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {member.email || 'N/A'}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{member.phone}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{member.points_balance}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                    {member.tier ? (
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-base">{member.tier.icon}</span>
+                            <span className="text-sm font-semibold" style={{ color: member.tier.color }}>
+                                {member.tier.name}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-gray-400 text-sm">—</span>
+                    )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 capitalize">
+                        {member.role}
+                    </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    {!isManager && (
+                        <div className="flex gap-2 justify-end">
+                            <button onClick={() => setIsEditing(true)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
+                            <button onClick={() => setShowDeleteDialog(true)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                        </div>
+                    )}
+                </td>
+            </tr>
 
             <ConfirmDialog
                 open={showDeleteDialog}
@@ -219,6 +248,6 @@ export default function MemberItem({ member, isManager, isMobileCard }: { member
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteDialog(false)}
             />
-        </div>
+        </>
     )
 }
