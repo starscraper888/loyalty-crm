@@ -23,7 +23,7 @@ export default function OnboardingTour({ steps, tourKey, run = true }: Onboardin
 
     const handleJoyrideCallback = (data: CallBackProps) => {
         const { status } = data
-        const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED]
+        const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED]
 
         if (finishedStatuses.includes(status)) {
             setRunTour(false)
