@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { createMember } from '@/app/admin/actions'
+import { SubmitButton } from '@/components/ui/SubmitButton'
 
 export default function AddMemberForm() {
     const [error, setError] = useState<string | null>(null)
@@ -96,10 +97,6 @@ export default function AddMemberForm() {
 
                 <div className="flex justify-end items-center gap-4 pt-2">
                     {error && <p className="text-red-500 text-sm">{error}</p>}
-                    import {SubmitButton} from '@/components/ui/SubmitButton'
-
-                    // ... in the component return ...
-
                     <SubmitButton
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                         loadingText={`Adding ${role}...`}
