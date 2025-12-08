@@ -45,7 +45,9 @@ export default function AddMemberForm() {
                         <option value="admin">Admin</option>
                     </select>
                     <p className="text-xs text-gray-500 mt-1">
-                        {role === 'member' ? 'Regular customer with points and rewards.' : 'Internal user with access to the dashboard.'}
+                        {role === 'member'
+                            ? 'Customer will receive email OTP for first login and set their own password.'
+                            : 'Internal user with dashboard access and password-based login.'}
                     </p>
                 </div>
 
@@ -63,34 +65,42 @@ export default function AddMemberForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Email {isStaffOrHigher ? '(Required)' : '(Optional)'}
+                            Email (Required {!isStaffOrHigher && '- for OTP login'})
                         </label>
                         <input
                             name="email"
                             type="email"
                             placeholder="john@example.com"
-                            required={isStaffOrHigher}
+                            required
                             className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
                         />
+                        {!isStaffOrHigher && (
+                            <p className="text-xs text-gray-500 mt-1">
+                                Member will receive OTP to set up account
+                            </p>
+                        )}
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Password {isStaffOrHigher ? '(Required)' : '(Optional - for member login)'}
-                        </label>
-                        <input
-                            name="password"
-                            type="text"
-                            placeholder={isStaffOrHigher ? "SecurePassword123!" : "Leave blank if no login needed"}
-                            required={isStaffOrHigher}
-                            minLength={8}
-                            className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            {isStaffOrHigher ? 'Min 8 chars' : 'Set password to enable member login'}
-                        </p>
-                    </div>
 
+                    {/* Password only for Staff/Admin - Members use OTP */}
+                    {isStaffOrHigher && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Password (Required)
+                            </label>
+                            <input
+                                name="password"
+                                type="text"
+                                placeholder="SecurePassword123!"
+                                required
+                                minLength={8}
+                                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Min 8 characters
+                            </p>
+                        </div>
+                    )}
 
                     {/* Points only for Members (usually staff don't need initial points, but keeping it optional) */}
                     {!isStaffOrHigher && (
