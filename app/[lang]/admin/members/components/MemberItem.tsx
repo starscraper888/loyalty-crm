@@ -19,8 +19,21 @@ export default function MemberItem({ member, isManager }: { member: Member, isMa
     const [isEditing, setIsEditing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [currentPoints, setCurrentPoints] = useState(member.points_balance)
+
+    // Track if points changed and by how much
+    const pointsDelta = currentPoints - member.points_balance
+    const showReasonField = pointsDelta !== 0
+    const requireReason = Math.abs(pointsDelta) > 100
 
     const handleUpdate = async (formData: FormData) => {
+        // Validate reason if points changed significantly
+        const reason = formData.get('adjustment_reason') as string
+        if (requireReason && (!reason || reason.trim().length < 5)) {
+            setError('Adjustment reason required for changes >100 points (min 5 characters)')
+            return
+        }
+
         const res = await updateMember(member.id, formData)
         if (res?.error) {
             setError(res.error)
@@ -66,8 +79,41 @@ export default function MemberItem({ member, isManager }: { member: Member, isMa
                     </div>
                     <div className="col-span-6 md:col-span-1">
                         <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Points</label>
-                        <input name="points" type="number" defaultValue={member.points_balance} required className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:text-white" />
+                        <input
+                            name="points"
+                            type="number"
+                            defaultValue={member.points_balance}
+                            onChange={(e) => setCurrentPoints(parseInt(e.target.value) || 0)}
+                            required
+                            className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:text-white"
+                        />
                     </div>
+
+                    {/* Adjustment Reason Field - Shows when points change */}
+                    {showReasonField && (
+                        <div className="col-span-12 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Adjustment Reason {requireReason && <span className="text-red-500">*</span>}
+                                <span className="text-xs font-normal text-gray-500 ml-2">
+                                    ({pointsDelta > 0 ? '+' : ''}{pointsDelta} points)
+                                </span>
+                            </label>
+                            <textarea
+                                name="adjustment_reason"
+                                placeholder="Why are you adjusting this member's points? (e.g., Customer complaint, Data correction, Promotion bonus)"
+                                required={requireReason}
+                                minLength={5}
+                                rows={2}
+                                className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:text-white"
+                            />
+                            {requireReason && (
+                                <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                                    ⚠️ Large adjustments (&gt;100 points) require a reason
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     <div className="col-span-12 md:col-span-2 flex justify-end gap-2 items-end h-full pb-1">
                         <button type="button" onClick={() => setIsEditing(false)} className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">Cancel</button>
                         <button type="submit" className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>

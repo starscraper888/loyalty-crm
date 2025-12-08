@@ -335,6 +335,7 @@ export async function updateMember(id: string, formData: FormData) {
     const phone = formData.get('phone') as string
     const points = parseInt(formData.get('points') as string)
     const role = formData.get('role') as string
+    const adjustmentReason = formData.get('adjustment_reason') as string
 
     const allowedRoles = ['owner', 'manager', 'admin', 'staff', 'member']
     if (role && !allowedRoles.includes(role)) {
@@ -393,6 +394,12 @@ export async function updateMember(id: string, formData: FormData) {
         // Get current admin user
         const { data: { user: admin } } = await supabase.auth.getUser()
 
+        // Build description with reason
+        let description = `Manual adjustment by ${admin?.email || 'unknown'}`
+        if (adjustmentReason && adjustmentReason.trim()) {
+            description += ` - Reason: ${adjustmentReason.trim()}`
+        }
+
         await adminSupabase
             .from('points_ledger')
             .insert({
@@ -400,7 +407,7 @@ export async function updateMember(id: string, formData: FormData) {
                 tenant_id: currentProfile.tenant_id,
                 points: adjustmentType === 'earn' ? absoluteDelta : -absoluteDelta,
                 type: adjustmentType,
-                description: `Manual adjustment by admin (${admin?.email || 'unknown'})`
+                description: description
             })
     }
 
@@ -421,11 +428,23 @@ export async function updateMember(id: string, formData: FormData) {
     // Audit log: Track who updated the member
     const { data: { user: currentUser } } = await supabase.auth.getUser()
     if (currentUser && currentProfile) {
+        const auditDetails: any = { memberId: id, updates: { fullName, phone, role } }
+
+        // Add point adjustment metadata if points changed
+        if (currentProfile.points_balance !== points) {
+            auditDetails.pointsAdjustment = {
+                oldBalance: currentProfile.points_balance,
+                newBalance: points,
+                delta: points - currentProfile.points_balance,
+                reason: adjustmentReason || 'Not provided'
+            }
+        }
+
         await logAudit({
             action: AUDIT_ACTIONS.MEMBER_EDIT,
             tenantId: currentProfile.tenant_id,
             actorId: currentUser.id,
-            details: { memberId: id, updates: { fullName, phone, role } }
+            details: auditDetails
         })
     }
 
