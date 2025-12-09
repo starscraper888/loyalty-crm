@@ -27,10 +27,9 @@ export default function MemberItem({ member, isManager, isMobileCard }: { member
     const [isEditing, setIsEditing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [currentPoints, setCurrentPoints] = useState(member.points_balance)
-
-    // Track if points changed and by how much
-    const pointsDelta = currentPoints - member.points_balance
+    const [currentPoints, setCurrentPoints] = useState<number>(member.active_points || member.points_balance || 0)
+    const previousPoints = member.active_points || member.points_balance || 0
+    const pointsDelta = currentPoints - previousPoints
     const showReasonField = pointsDelta !== 0
     const requireReason = Math.abs(pointsDelta) > 100
 
