@@ -127,37 +127,46 @@ WHERE p.tenant_id IS NOT NULL
 ON CONFLICT (member_id, tenant_id) DO NOTHING;
 
 -- ============================================================================
--- PART 4: Update points_history for Tenant Scoping
+-- PART 4: Update points_history for Tenant Scoping (if table exists)
 -- ============================================================================
 
--- Add expires_at for points expiry tracking
-ALTER TABLE points_history
-ADD COLUMN IF NOT EXISTS expires_at timestamptz;
-
--- Add voided_at for reversals
-ALTER TABLE points_history
-ADD COLUMN IF NOT EXISTS voided_at timestamptz;
-
--- Update type enum to include 'expired'
--- Note: PostgreSQL doesn't support ALTER TYPE easily, so we'll add a check constraint instead
-ALTER TABLE points_history
-DROP CONSTRAINT IF EXISTS points_history_type_check;
-
-ALTER TABLE points_history
-ADD CONSTRAINT points_history_type_check 
-CHECK (type IN ('earn', 'redeem', 'expired', 'adjustment', 'void'));
-
--- Set expires_at for existing earn transactions (365 days from creation)
-UPDATE points_history
-SET expires_at = created_at + INTERVAL '365 days'
-WHERE type = 'earn' AND expires_at IS NULL;
-
--- Index for expiry queries
-CREATE INDEX IF NOT EXISTS idx_points_history_expires ON points_history(expires_at) WHERE expires_at IS NOT NULL;
-
--- Comments
-COMMENT ON COLUMN points_history.expires_at IS 'When earned points expire (FIFO basis). NULL for redemptions.';
-COMMENT ON COLUMN points_history.voided_at IS 'Timestamp if transaction was reversed/voided';
+-- Only modify if points_history table exists
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'points_history') THEN
+        -- Add expires_at for points expiry tracking
+        ALTER TABLE points_history
+        ADD COLUMN IF NOT EXISTS expires_at timestamptz;
+        
+        -- Add voided_at for reversals
+        ALTER TABLE points_history
+        ADD COLUMN IF NOT EXISTS voided_at timestamptz;
+        
+        -- Update type constraint to include 'expired'
+        ALTER TABLE points_history
+        DROP CONSTRAINT IF EXISTS points_history_type_check;
+        
+        ALTER TABLE points_history
+        ADD CONSTRAINT points_history_type_check 
+        CHECK (type IN ('earn', 'redeem', 'expired', 'adjustment', 'void'));
+        
+        -- Set expires_at for existing earn transactions (365 days from creation)
+        UPDATE points_history
+        SET expires_at = created_at + INTERVAL '365 days'
+        WHERE type = 'earn' AND expires_at IS NULL;
+        
+        -- Index for expiry queries
+        CREATE INDEX IF NOT EXISTS idx_points_history_expires ON points_history(expires_at) WHERE expires_at IS NOT NULL;
+        
+        -- Comments
+        EXECUTE 'COMMENT ON COLUMN points_history.expires_at IS ''When earned points expire (FIFO basis). NULL for redemptions.''';
+        EXECUTE 'COMMENT ON COLUMN points_history.voided_at IS ''Timestamp if transaction was reversed/voided''';
+        
+        RAISE NOTICE 'Updated points_history table for expiry tracking';
+    ELSE
+        RAISE NOTICE 'Skipping points_history updates - table does not exist yet';
+    END IF;
+END $$;
 
 -- ============================================================================
 -- PART 5: Update Tier Tracking Function
