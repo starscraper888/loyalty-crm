@@ -168,7 +168,7 @@ export default function IssuePointsPage() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">Customer</p>
                             <p className="font-bold text-lg text-gray-900 dark:text-white">{profile.full_name || 'Unknown Name'}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">{profile.phone}</p>
-                            <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">Current Balance: {profile.points_balance} pts</p>
+                            <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">Current Balance: {profile.active_points || profile.points_balance || 0} pts</p>
                         </div>
 
                         <div>
