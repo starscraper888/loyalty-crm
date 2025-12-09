@@ -101,6 +101,7 @@ COMMENT ON COLUMN tenants.settings IS 'JSON configuration for tenant-specific lo
 -- ============================================================================
 
 -- Migrate existing profile data to member_tenants
+-- Note: Use GREATEST to clamp negative values to 0 (data integrity)
 INSERT INTO member_tenants (
     member_id,
     tenant_id,
@@ -114,8 +115,8 @@ INSERT INTO member_tenants (
 SELECT 
     p.id as member_id,
     p.tenant_id,
-    COALESCE(p.points_balance, 0) as active_points,
-    COALESCE(p.lifetime_points, 0) as lifetime_points,
+    GREATEST(0, COALESCE(p.points_balance, 0)) as active_points,  -- No negatives
+    GREATEST(0, COALESCE(p.lifetime_points, 0)) as lifetime_points,  -- No negatives
     p.tier_id,
     p.otp_code,
     p.otp_expires_at,
