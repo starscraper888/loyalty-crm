@@ -69,7 +69,7 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
             <div data-tour="points-balance" className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8">
                 <div className="text-white">
                     <p className="text-lg opacity-90">Current Balance</p>
-                    <h2 className="text-6xl font-bold mt-2">{profile.points_balance}</h2>
+                    <h2 className="text-6xl font-bold mt-2">{profile.member_tenants?.[0]?.active_points || profile.points_balance || 0}</h2>
                     <p className="text-2xl opacity-90">points</p>
                 </div>
             </div>
