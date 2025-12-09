@@ -269,19 +269,7 @@ $$;
 -- Migration Complete
 -- ============================================================================
 
--- Verify migration success
-DO $$
-DECLARE
-    v_tenant_count int;
-    v_member_count int;
-    v_membership_count int;
-BEGIN
-    SELECT COUNT(*) INTO v_tenant_count FROM tenants WHERE slug IS NOT NULL;
-    SELECT COUNT(*) INTO v_member_count FROM profiles WHERE role = 'member';
-    SELECT COUNT(*) INTO v_membership_count FROM member_tenants;
-    
-    RAISE NOTICE 'Migration Summary:';
-    RAISE NOTICE '  Tenants with slugs: %', v_tenant_count;
-    RAISE NOTICE '  Total members: %', v_member_count;
-    RAISE NOTICE '  Member-tenant memberships: %', v_membership_count;
-END $$;
+-- Run these queries separately to verify migration success:
+-- SELECT COUNT(*) FROM tenants WHERE slug IS NOT NULL;
+-- SELECT COUNT(*) FROM profiles WHERE role = 'member';
+-- SELECT COUNT(*) FROM member_tenants;
