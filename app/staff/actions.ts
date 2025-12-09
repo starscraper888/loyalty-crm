@@ -471,7 +471,7 @@ export async function quickCreateAndIssuePoints(
         memberId = authUser.user.id
     }
 
-    // Create membership for this tenant
+    // Create membership for this tenant with ZERO points initially
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 365)
 
@@ -480,8 +480,8 @@ export async function quickCreateAndIssuePoints(
         .insert({
             member_id: memberId,
             tenant_id: staffProfile.tenant_id,
-            active_points: points,
-            lifetime_points: points
+            active_points: 0,  // Start with 0
+            lifetime_points: 0  // Start with 0
         })
         .select('id')
         .single()
@@ -490,8 +490,8 @@ export async function quickCreateAndIssuePoints(
         return { error: `Failed to create membership: ${membershipError.message}` }
     }
 
-    // Create points ledger entry
-    await supabase
+    // Now issue points via ledger (proper flow)
+    const { error: ledgerError } = await supabase
         .from('points_ledger')
         .insert({
             tenant_id: staffProfile.tenant_id,
@@ -501,6 +501,19 @@ export async function quickCreateAndIssuePoints(
             description: description || 'First purchase',
             expires_at: expiresAt.toISOString()
         })
+
+    if (ledgerError) {
+        return { error: `Failed to issue points: ${ledgerError.message}` }
+    }
+
+    // Update membership with points
+    await supabase
+        .from('member_tenants')
+        .update({
+            active_points: points,
+            lifetime_points: points
+        })
+        .eq('id', membership.id)
 
     // Send welcome notification
     notifyWelcome(
