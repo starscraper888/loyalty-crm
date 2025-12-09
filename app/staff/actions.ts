@@ -7,29 +7,106 @@ import { notifyPointsIssued, notifyRewardRedeemed, notifyWelcome } from '@/lib/w
 import { logAudit, AUDIT_ACTIONS } from '@/lib/audit/middleware'
 import { trackUsage } from '@/lib/usage/tracking'
 
+/**
+ * Lookup customer by OTP or phone number
+ * Updated for multi-tenant: Returns membership for current staff's tenant
+ */
 export async function lookupCustomer(identifier: string) {
     const supabase = await createClient()
 
-    // Check if it's an OTP (6 digits)
-    if (/^\d{6}$/.test(identifier)) {
-        const { data, error } = await supabase.rpc('verify_otp', { p_otp: identifier })
-        if (error) return { error: error.message }
-        if (!data) return { error: "Invalid or expired OTP" }
-        return { success: true, profile: data }
-    }
+    // Get staff's tenant context
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: "Not authenticated" }
 
-    // Assume it's a phone number
-    // Normalize phone? Assuming input matches DB format for now.
-    const { data, error } = await supabase
+    const { data: staffProfile } = await supabase
         .from('profiles')
-        .select('id, full_name, phone, points_balance, tenant_id')
-        .eq('phone', identifier)
+        .select('tenant_id')
+        .eq('id', user.id)
         .single()
 
-    if (error || !data) return { error: "Customer not found" }
-    return { success: true, profile: data }
+    if (!staffProfile?.tenant_id) {
+        return { error: "Staff profile not found" }
+    }
+
+    // Check if it's an OTP (6 digits)
+    if (/^\d{6}$/.test(identifier)) {
+        // Query member_tenants for OTP verification
+        const { data: membership, error } = await supabase
+            .from('member_tenants')
+            .select(`
+                *,
+                member:profiles(id, full_name, phone, email, role)
+            `)
+            .eq('otp_code', identifier)
+            .eq('tenant_id', staffProfile.tenant_id)
+            .gt('otp_expires_at', new Date().toISOString())
+            .single()
+
+        if (error || !membership) {
+            return { error: "Invalid or expired OTP" }
+        }
+
+        // Return in format expected by UI
+        return {
+            success: true,
+            profile: {
+                id: membership.member.id,
+                full_name: membership.member.full_name,
+                phone: membership.member.phone,
+                email: membership.member.email,
+                points_balance: membership.active_points, // For backward compat
+                active_points: membership.active_points,
+                lifetime_points: membership.lifetime_points,
+                tier_id: membership.tier_id,
+                membership_id: membership.id
+            }
+        }
+    }
+
+    // Assume it's a phone number - lookup member and their membership
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone, email, role')
+        .eq('phone', identifier)
+        .eq('role', 'member')
+        .single()
+
+    if (profileError || !profile) {
+        return { error: "Customer not found" }
+    }
+
+    // Get membership for this tenant
+    const { data: membership } = await supabase
+        .from('member_tenants')
+        .select('*')
+        .eq('member_id', profile.id)
+        .eq('tenant_id', staffProfile.tenant_id)
+        .single()
+
+    if (!membership) {
+        return { error: "Customer not registered with your store. Ask them to scan QR code first." }
+    }
+
+    return {
+        success: true,
+        profile: {
+            id: profile.id,
+            full_name: profile.full_name,
+            phone: profile.phone,
+            email: profile.email,
+            points_balance: membership.active_points,
+            active_points: membership.active_points,
+            lifetime_points: membership.lifetime_points,
+            tier_id: membership.tier_id,
+            membership_id: membership.id
+        }
+    }
 }
 
+/**
+ * Issue points to a member
+ * Updated for multi-tenant: Updates member_tenants table
+ */
 export async function issuePoints(profileId: string, points: number, description: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -45,20 +122,16 @@ export async function issuePoints(profileId: string, points: number, description
         .eq('id', user.id)
         .single()
 
-    if (profileError) {
-        return { error: `Profile Error: ${profileError.message} (Code: ${profileError.code})` }
+    if (profileError || !staffProfile) {
+        return { error: `Profile Error: ${profileError?.message}` }
     }
 
-    if (!staffProfile) {
-        return { error: "Profile not found" }
-    }
-
-    // Optional: Enforce role check here if RLS doesn't cover it enough
+    // Enforce role check
     if (!['staff', 'admin', 'owner', 'manager'].includes(staffProfile.role)) {
         return { error: `Insufficient Role: ${staffProfile.role}` }
     }
 
-    // Check transaction limit before processing
+    // Check transaction limit
     const { checkUsageLimit } = await import('@/lib/usage/tracking')
     const limitCheck = await checkUsageLimit({
         tenantId: staffProfile.tenant_id,
@@ -69,46 +142,83 @@ export async function issuePoints(profileId: string, points: number, description
         return { error: limitCheck.message }
     }
 
-    const { error } = await supabase
+    // Get member's membership for this tenant
+    const { data: membership, error: membershipError } = await supabase
+        .from('member_tenants')
+        .select('id, active_points, lifetime_points')
+        .eq('member_id', profileId)
+        .eq('tenant_id', staffProfile.tenant_id)
+        .single()
+
+    if (membershipError || !membership) {
+        return { error: "Member not found in your store. Ask them to scan QR code first." }
+    }
+
+    // Calculate points with expiry (365 days from now)
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 365)
+
+    // Insert points transaction
+    const { error: ledgerError } = await supabase
         .from('points_ledger')
         .insert({
             tenant_id: staffProfile.tenant_id,
             profile_id: profileId,
             points: points,
             type: 'earn',
-            description: description || 'In-store Purchase'
+            description: description || 'In-store Purchase',
+            expires_at: expiresAt.toISOString()
         })
 
-    if (error) return { error: error.message }
+    if (ledgerError) {
+        return { error: `Transaction failed: ${ledgerError.message}` }
+    }
 
-    // Audit log: Track who issued points
+    // Update member_tenants with new points
+    const newActivePoints = membership.active_points + points
+    const newLifetimePoints = membership.lifetime_points + points
+
+    const { error: updateError } = await supabase
+        .from('member_tenants')
+        .update({
+            active_points: newActivePoints,
+            lifetime_points: newLifetimePoints,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', membership.id)
+
+    if (updateError) {
+        return { error: `Points update failed: ${updateError.message}` }
+    }
+
+    // Audit log
     await logAudit({
         action: AUDIT_ACTIONS.POINTS_ISSUE,
         tenantId: staffProfile.tenant_id,
         actorId: user.id,
-        details: { profileId, points, description }
+        details: { profileId, points, description, newBalance: newActivePoints }
     })
 
-    // Usage tracking: Increment transaction count
+    // Usage tracking
     await trackUsage({
         tenantId: staffProfile.tenant_id,
         increment: { transactions_count: 1 }
     })
 
-    // Fetch updated customer profile for notification
+    // Fetch customer for notification
     const { data: customerProfile } = await supabase
         .from('profiles')
-        .select('full_name, phone, points_balance')
+        .select('full_name, phone')
         .eq('id', profileId)
         .single()
 
-    // Send WhatsApp notification (async, don't wait)
+    // Send WhatsApp notification
     if (customerProfile?.phone) {
         notifyPointsIssued(
             customerProfile.phone,
             customerProfile.full_name || 'Customer',
             points,
-            customerProfile.points_balance,
+            newActivePoints,
             description
         ).catch(err => console.error('Notification failed:', err))
     }
@@ -117,10 +227,14 @@ export async function issuePoints(profileId: string, points: number, description
     return {
         success: true,
         message: `Issued ${points} points`,
-        newBalance: customerProfile?.points_balance
+        newBalance: newActivePoints
     }
 }
 
+/**
+ * Redeem reward
+ * Updated for multi-tenant: Checks member_tenants.active_points
+ */
 export async function redeemReward(profileId: string, rewardId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -136,23 +250,33 @@ export async function redeemReward(profileId: string, rewardId: string) {
 
     if (!staffProfile) return { error: "Unauthorized" }
 
-    // 1. Check Balance
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('points_balance')
-        .eq('id', profileId)
-        .single()
-
+    // Get reward details
     const { data: reward } = await supabase
         .from('rewards')
         .select('cost, name')
         .eq('id', rewardId)
+        .eq('tenant_id', staffProfile.tenant_id)
         .single()
 
-    if (!profile || !reward) return { error: "Profile or Reward not found" }
-    if (profile.points_balance < reward.cost) return { error: "Insufficient points" }
+    if (!reward) return { error: "Reward not found" }
 
-    // 2. Deduct Points
+    // Check member's balance for this tenant
+    const { data: membership } = await supabase
+        .from('member_tenants')
+        .select('id, active_points, lifetime_points')
+        .eq('member_id', profileId)
+        .eq('tenant_id', staffProfile.tenant_id)
+        .single()
+
+    if (!membership) {
+        return { error: "Member not found in your store" }
+    }
+
+    if (membership.active_points < reward.cost) {
+        return { error: "Insufficient points" }
+    }
+
+    // Deduct Points
     const { error: ledgerError } = await supabase
         .from('points_ledger')
         .insert({
@@ -165,7 +289,18 @@ export async function redeemReward(profileId: string, rewardId: string) {
 
     if (ledgerError) return { error: ledgerError.message }
 
-    // 3. Record Redemption
+    // Update member_tenants
+    const newActivePoints = membership.active_points - reward.cost
+
+    await supabase
+        .from('member_tenants')
+        .update({
+            active_points: newActivePoints,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', membership.id)
+
+    // Record Redemption
     const { data: redemption, error: redemptionError } = await supabase
         .from('redemptions')
         .insert({
@@ -184,7 +319,7 @@ export async function redeemReward(profileId: string, rewardId: string) {
         return { error: "Failed to record redemption" }
     }
 
-    // Audit log: Track who redeemed the reward
+    // Audit log
     await logAudit({
         action: AUDIT_ACTIONS.POINTS_REDEEM,
         tenantId: staffProfile.tenant_id,
@@ -192,27 +327,27 @@ export async function redeemReward(profileId: string, rewardId: string) {
         details: { profileId, rewardId, rewardName: reward.name, cost: reward.cost }
     })
 
-    // Usage tracking: Increment transaction count
+    // Usage tracking
     await trackUsage({
         tenantId: staffProfile.tenant_id,
         increment: { transactions_count: 1 }
     })
 
-    // Fetch updated customer profile for notification
-    const { data: updatedProfile } = await supabase
+    // Fetch customer for notification
+    const { data: customerProfile } = await supabase
         .from('profiles')
-        .select('full_name, phone, points_balance')
+        .select('full_name, phone')
         .eq('id', profileId)
         .single()
 
-    // Send WhatsApp notification (async, don't wait)
-    if (updatedProfile?.phone) {
+    // Send WhatsApp notification
+    if (customerProfile?.phone) {
         notifyRewardRedeemed(
-            updatedProfile.phone,
-            updatedProfile.full_name || 'Customer',
+            customerProfile.phone,
+            customerProfile.full_name || 'Customer',
             reward.name,
             reward.cost,
-            updatedProfile.points_balance,
+            newActivePoints,
             redemption?.redemption_number
         ).catch(err => console.error('Notification failed:', err))
     }
@@ -221,7 +356,7 @@ export async function redeemReward(profileId: string, rewardId: string) {
     return {
         success: true,
         message: `Redeemed ${reward.name} (Ref #${redemption?.redemption_number})`,
-        newBalance: updatedProfile?.points_balance
+        newBalance: newActivePoints
     }
 }
 
@@ -248,6 +383,10 @@ export async function getRewards() {
     return data || []
 }
 
+/**
+ * Quick create member and issue points
+ * Updated for multi-tenant: Creates member_tenants entry
+ */
 export async function quickCreateAndIssuePoints(
     phone: string,
     fullName: string,
@@ -279,26 +418,38 @@ export async function quickCreateAndIssuePoints(
         return { error: "Insufficient permissions" }
     }
 
-    // Check if member already exists
+    // Check if member already exists (platform-level)
     const { data: existing } = await supabase
         .from('profiles')
         .select('id')
         .eq('phone', phone)
+        .eq('role', 'member')
         .single()
 
-    if (existing) {
-        return { error: "Customer already exists. Please use phone lookup instead." }
-    }
+    let memberId: string
 
-    try {
-        // Create auth user with phone
+    if (existing) {
+        // Member exists, check if they have membership for this tenant
+        const { data: membership } = await supabase
+            .from('member_tenants')
+            .select('id')
+            .eq('member_id', existing.id)
+            .eq('tenant_id', staffProfile.tenant_id)
+            .single()
+
+        if (membership) {
+            return { error: "Customer already exists in your store. Please use phone lookup instead." }
+        }
+
+        memberId = existing.id
+    } else {
+        // Create new member (platform-level)
         const { data: authUser, error: authError } = await adminSupabase.auth.admin.createUser({
             phone: phone,
-            password: phone, // Default password = phone number
+            password: phone, // Temporary password
             email_confirm: true,
             user_metadata: {
                 full_name: fullName || `Customer ${phone}`,
-                tenant_id: staffProfile.tenant_id,
                 role: 'member'
             }
         })
@@ -307,68 +458,63 @@ export async function quickCreateAndIssuePoints(
             return { error: `Failed to create user: ${authError?.message}` }
         }
 
-        // Update profile with full details
-        const { error: profileError } = await adminSupabase
+        // Update profile
+        await adminSupabase
             .from('profiles')
             .update({
                 full_name: fullName || `Customer ${phone}`,
                 phone: phone,
-                role: 'member',
-                tenant_id: staffProfile.tenant_id
+                role: 'member'
             })
             .eq('id', authUser.user.id)
 
-        if (profileError) {
-            return { error: `Profile update failed: ${profileError.message}` }
-        }
+        memberId = authUser.user.id
+    }
 
-        // Issue points immediately
-        const { error: ledgerError } = await supabase
-            .from('points_ledger')
-            .insert({
-                tenant_id: staffProfile.tenant_id,
-                profile_id: authUser.user.id,
-                points: points,
-                type: 'earn',
-                description: description || 'First purchase'
-            })
+    // Create membership for this tenant
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 365)
 
-        if (ledgerError) {
-            return { error: `Failed to issue points: ${ledgerError.message}` }
-        }
+    const { data: membership, error: membershipError } = await supabase
+        .from('member_tenants')
+        .insert({
+            member_id: memberId,
+            tenant_id: staffProfile.tenant_id,
+            active_points: points,
+            lifetime_points: points
+        })
+        .select('id')
+        .single()
 
-        // Get final profile with updated balance
-        const { data: newProfile } = await supabase
-            .from('profiles')
-            .select('id, full_name, phone, points_balance')
-            .eq('id', authUser.user.id)
-            .single()
+    if (membershipError) {
+        return { error: `Failed to create membership: ${membershipError.message}` }
+    }
 
-        if (!newProfile) {
-            return { error: "Failed to retrieve new member profile" }
-        }
+    // Create points ledger entry
+    await supabase
+        .from('points_ledger')
+        .insert({
+            tenant_id: staffProfile.tenant_id,
+            profile_id: memberId,
+            points: points,
+            type: 'earn',
+            description: description || 'First purchase',
+            expires_at: expiresAt.toISOString()
+        })
 
-        // Send welcome notification (async, don't wait)
-        if (newProfile.phone) {
-            notifyWelcome(
-                newProfile.phone,
-                newProfile.full_name || 'Customer',
-                newProfile.points_balance
-            ).catch(err => console.error('Welcome notification failed:', err))
-        }
+    // Send welcome notification
+    notifyWelcome(
+        phone,
+        fullName || 'Customer',
+        points
+    ).catch(err => console.error('Welcome notification failed:', err))
 
-        revalidatePath('/staff/issue')
-        revalidatePath('/admin/members')
+    revalidatePath('/staff/issue')
+    revalidatePath('/admin/members')
 
-        return {
-            success: true,
-            message: `New member created and ${points} points issued!`,
-            profile: newProfile,
-            newBalance: newProfile.points_balance
-        }
-
-    } catch (error: any) {
-        console.error('Quick create error:', error)
-        return { error: error.message || "Unknown error occurred" }
+    return {
+        success: true,
+        message: `New member created and ${points} points issued!`,
+        newBalance: points
     }
 }
