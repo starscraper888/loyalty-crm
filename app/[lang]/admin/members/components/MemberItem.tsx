@@ -10,7 +10,9 @@ export interface Member {
     full_name: string
     email?: string
     phone: string
-    points_balance: number
+    points_balance?: number
+    active_points?: number
+    lifetime_points?: number
     role: string
     created_at: string
     tier?: {

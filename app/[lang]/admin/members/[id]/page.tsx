@@ -82,7 +82,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow border border-gray-100 dark:border-gray-700">
                         <div className="text-sm text-gray-500 dark:text-gray-400">Current Balance</div>
-                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{profile.points_balance} pts</div>
+                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{profile.member_tenants?.[0]?.active_points || profile.points_balance || 0} pts</div>
                     </div>
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow border border-gray-100 dark:border-gray-700">
                         <div className="text-sm text-gray-500 dark:text-gray-400">Contact Info</div>
