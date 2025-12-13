@@ -8,10 +8,10 @@ export type TransactionType = 'earn' | 'redeem' | 'otp'
 
 // Tier configurations
 export const TIER_LIMITS = {
-    starter: 250,
-    growth: 1000,
+    starter: 300,
+    growth: 1200,
     business: 3000,
-    enterprise: 10000
+    enterprise: 5000
 } as const
 
 export const TIER_PRICES = {
