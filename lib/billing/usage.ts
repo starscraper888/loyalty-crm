@@ -143,16 +143,18 @@ export async function getUsageStats(tenantId: string): Promise<UsageStats | null
         return null
     }
 
+    const stats = data as any
+
     return {
-        tier: data.tier as SubscriptionTier,
-        limit: data.limit_amount,
-        used: data.used,
-        remaining: data.remaining,
-        usagePercent: parseFloat(data.usage_percent) || 0,
-        periodStart: data.period_start,
-        periodEnd: data.period_end,
-        isActive: data.is_active,
-        price: TIER_PRICES[data.tier as SubscriptionTier]
+        tier: stats.tier as SubscriptionTier,
+        limit: stats.limit_amount,
+        used: stats.used,
+        remaining: stats.remaining,
+        usagePercent: parseFloat(stats.usage_percent) || 0,
+        periodStart: stats.period_start,
+        periodEnd: stats.period_end,
+        isActive: stats.is_active,
+        price: TIER_PRICES[stats.tier as SubscriptionTier]
     }
 }
 
