@@ -22,8 +22,9 @@ export default async function MemberDashboardPage({ params }: { params: Promise<
     // Get tier information
     const tier = await getMemberTier(profile.id)
     const nextTier = tier ? await getNextTier(tier.name) : null
-    const progress = tier && profile.lifetime_points ? getTierProgress(profile.lifetime_points, tier, nextTier) : 0
-    const pointsToNext = tier ? getPointsToNextTier(profile.lifetime_points || 0, nextTier) : 0
+    const lifetimePoints = profile.member_tenants?.[0]?.lifetime_points || 0
+    const progress = tier && lifetimePoints ? getTierProgress(lifetimePoints, tier, nextTier) : 0
+    const pointsToNext = tier ? getPointsToNextTier(lifetimePoints, nextTier) : 0
 
     // Calculate stats
     const totalEarned = transactions
