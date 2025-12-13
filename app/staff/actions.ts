@@ -139,13 +139,7 @@ export async function issuePoints(profileId: string, points: number, description
         return { error: `Insufficient Role: ${staffProfile.role}` }
     }
 
-    // Check transaction limit (new billing system)
-    const limitCheck = await canPerformTransaction(staffProfile.tenant_id)
-
-    if (!limitCheck.allowed) {
-        return { error: limitCheck.errorMessage || 'Transaction limit reached. Please upgrade your plan.' }
-    }
-
+    // Transaction already counted during OTP verification
     // Get member's membership for this tenant
     const { data: membership, error: membershipError } = await supabase
         .from('member_tenants')
@@ -254,12 +248,7 @@ export async function redeemReward(profileId: string, rewardId: string) {
 
     if (!staffProfile) return { error: "Unauthorized" }
 
-    // Check transaction limit (new billing system)
-    const limitCheck = await canPerformTransaction(staffProfile.tenant_id)
-    if (!limitCheck.allowed) {
-        return { error: limitCheck.errorMessage || 'Transaction limit reached. Please upgrade your plan.' }
-    }
-
+    // Transaction already counted during OTP verification
     // Get reward details
     const { data: reward } = await supabase
         .from('rewards')
