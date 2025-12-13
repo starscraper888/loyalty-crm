@@ -62,11 +62,13 @@ export async function canPerformTransaction(tenantId: string): Promise<Transacti
         }
     }
 
+    const row = data as any
+
     const result: TransactionCheckResult = {
-        allowed: data.allowed,
-        usage: data.current_usage,
-        limit: data.limit_amount,
-        tier: data.tier as SubscriptionTier
+        allowed: row.allowed,
+        usage: row.current_usage,
+        limit: row.limit_amount,
+        tier: row.tier as SubscriptionTier
     }
 
     if (!result.allowed) {
