@@ -1,9 +1,23 @@
 import { getAvailableRewards } from '@/app/member/actions'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function MemberRewardsPage({ params }: { params: Promise<{ lang: string }> }) {
     const { lang } = await params
-    const result = await getAvailableRewards()
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect(`/${lang}/auth/login`)
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single()
+
+    if (!profile) redirect(`/${lang}/auth/login`)
+
+    const result = await getAvailableRewards(profile.tenant_id)
 
     if (result.error) {
         redirect(`/${lang}/auth/login`)
@@ -37,8 +51,8 @@ export default async function MemberRewardsPage({ params }: { params: Promise<{ 
                             <div
                                 key={reward.id}
                                 className={`bg-white dark:bg-gray-800 rounded-xl shadow border ${canAfford
-                                        ? 'border-green-200 dark:border-green-800'
-                                        : 'border-gray-100 dark:border-gray-700'
+                                    ? 'border-green-200 dark:border-green-800'
+                                    : 'border-gray-100 dark:border-gray-700'
                                     } overflow-hidden transition-transform hover:scale-105`}
                             >
                                 {/* Reward Image */}
