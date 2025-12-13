@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { notifyPointsIssued, notifyRewardRedeemed, notifyWelcome } from '@/lib/whatsapp/notifications'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/audit/middleware'
 import { trackUsage } from '@/lib/usage/tracking'
+import { canPerformTransaction, recordTransaction } from '@/lib/billing/usage'
 
 /**
  * Lookup customer by OTP or phone number
@@ -45,6 +46,13 @@ export async function lookupCustomer(identifier: string) {
         if (error || !membership) {
             return { error: "Invalid or expired OTP" }
         }
+
+        // Record OTP verification as a transaction
+        await recordTransaction(
+            staffProfile.tenant_id,
+            'otp',
+            membership.member.id
+        )
 
         // Return in format expected by UI
         return {
@@ -131,15 +139,11 @@ export async function issuePoints(profileId: string, points: number, description
         return { error: `Insufficient Role: ${staffProfile.role}` }
     }
 
-    // Check transaction limit
-    const { checkUsageLimit } = await import('@/lib/usage/tracking')
-    const limitCheck = await checkUsageLimit({
-        tenantId: staffProfile.tenant_id,
-        limitType: 'transactions'
-    })
+    // Check transaction limit (new billing system)
+    const limitCheck = await canPerformTransaction(staffProfile.tenant_id)
 
     if (!limitCheck.allowed) {
-        return { error: limitCheck.message }
+        return { error: limitCheck.errorMessage || 'Transaction limit reached. Please upgrade your plan.' }
     }
 
     // Get member's membership for this tenant
@@ -249,6 +253,12 @@ export async function redeemReward(profileId: string, rewardId: string) {
         .single()
 
     if (!staffProfile) return { error: "Unauthorized" }
+
+    // Check transaction limit (new billing system)
+    const limitCheck = await canPerformTransaction(staffProfile.tenant_id)
+    if (!limitCheck.allowed) {
+        return { error: limitCheck.errorMessage || 'Transaction limit reached. Please upgrade your plan.' }
+    }
 
     // Get reward details
     const { data: reward } = await supabase
