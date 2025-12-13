@@ -65,8 +65,8 @@ export default function AdminNavbar({ email, role, isPlatformAdmin }: { email?: 
                                     key={item.href}
                                     href={item.href}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${active
-                                            ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                                            : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
                                         }`}
                                 >
                                     <Icon className="h-4 w-4" />
@@ -78,9 +78,9 @@ export default function AdminNavbar({ email, role, isPlatformAdmin }: { email?: 
                         {/* Settings Dropdown */}
                         <div className="relative group ml-2">
                             <button
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${isActive('/admin/qr-codes') || isActive('/admin/usage')
-                                        ? 'bg-purple-600/20 text-purple-400 border border-purple-500/30'
-                                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${isActive('/admin/qr-codes') || isActive('/settings/billing')
+                                    ? 'bg-purple-600/20 text-purple-400 border border-purple-500/30'
+                                    : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
                                     }`}
                             >
                                 <Settings className="h-4 w-4" />
@@ -101,15 +101,15 @@ export default function AdminNavbar({ email, role, isPlatformAdmin }: { email?: 
                                     </div>
                                 </Link>
                                 <Link
-                                    href={`/${lang}/admin/usage`}
+                                    href={`/${lang}/settings/billing`}
                                     className="flex items-center gap-3 px-4 py-3 hover:bg-slate-700/50 transition-colors"
                                 >
                                     <div className="p-2 bg-green-500/10 rounded-lg">
                                         <CreditCard className="h-4 w-4 text-green-400" />
                                     </div>
                                     <div>
-                                        <div className="text-sm font-medium text-white">Usage & Billing</div>
-                                        <div className="text-xs text-slate-400">Track limits</div>
+                                        <div className="text-sm font-medium text-white">Billing</div>
+                                        <div className="text-xs text-slate-400">Subscription & Credits</div>
                                     </div>
                                 </Link>
                             </div>
@@ -182,8 +182,8 @@ export default function AdminNavbar({ email, role, isPlatformAdmin }: { email?: 
                                     key={item.href}
                                     href={item.href}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${active
-                                            ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                                            : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
                                         }`}
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
@@ -208,14 +208,14 @@ export default function AdminNavbar({ email, role, isPlatformAdmin }: { email?: 
                                 <span className="text-sm font-medium">QR Codes</span>
                             </Link>
                             <Link
-                                href={`/${lang}/admin/usage`}
+                                href={`/${lang}/settings/billing`}
                                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 <div className="p-2 bg-green-500/10 rounded-lg">
                                     <CreditCard className="h-4 w-4 text-green-400" />
                                 </div>
-                                <span className="text-sm font-medium">Usage & Billing</span>
+                                <span className="text-sm font-medium">Billing</span>
                             </Link>
                         </div>
 
